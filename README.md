@@ -164,7 +164,7 @@ calls `wolfram-eval.sh` with real Wolfram code and checks the output.
 
 ```bash
 # Run all 100 tests
-bash tests/run-tests.sh
+make test
 
 # Run a single batch
 bash tests/run-tests.sh tests/batch-01.sh
@@ -180,6 +180,15 @@ are involved (plotting batches are slower).
 
 Tests require a working `wolframscript` installation. There are no other
 dependencies.
+
+## Development
+
+```bash
+make lint     # syntax-check all shell scripts
+make check    # validate plugin.json structure
+make test     # run full 100-test suite (needs wolframscript)
+make help     # list all targets
+```
 
 ## Troubleshooting
 
