@@ -44,13 +44,17 @@ for batch_file in "${BATCH_FILES[@]}"; do
     echo "--- $batch_name ---"
 
     # Snapshot current test_ functions before sourcing the batch
-    _pre_funcs=$(declare -F | awk '{print $3}' | grep '^test_' | sort)
+    _pre_funcs=$(declare -F | awk '{print $3}' | grep '^test_' | sort || true)
 
     # Source the batch file to define test functions
-    source "$batch_file"
+    if ! source "$batch_file"; then
+        echo "  ERROR: failed to source $batch_file"
+        echo ""
+        continue
+    fi
 
     # Discover only the NEW test_ functions added by this batch
-    _post_funcs=$(declare -F | awk '{print $3}' | grep '^test_' | sort)
+    _post_funcs=$(declare -F | awk '{print $3}' | grep '^test_' | sort || true)
     test_funcs=($(comm -13 <(echo "$_pre_funcs") <(echo "$_post_funcs")))
 
     if [[ ${#test_funcs[@]} -eq 0 ]]; then
@@ -70,8 +74,9 @@ for batch_file in "${BATCH_FILES[@]}"; do
         result=0
         $func || result=$?
 
-        # A test fails if: the function returned non-zero OR any assertion set the flag
-        if [[ $result -eq 2 ]]; then
+        # A test fails if: the function returned non-zero OR any assertion set the flag.
+        # Skip only counts if no assertion has already failed in this test.
+        if [[ $result -eq 2 && $_CURRENT_TEST_FAILED -eq 0 ]]; then
             SKIP_COUNT=$((SKIP_COUNT + 1))
         elif [[ $result -ne 0 || $_CURRENT_TEST_FAILED -ne 0 ]]; then
             FAIL_COUNT=$((FAIL_COUNT + 1))

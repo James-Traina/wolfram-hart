@@ -23,6 +23,15 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 EVAL_SCRIPT="$SCRIPT_DIR/../skills/wolfram-hart/scripts/wolfram-eval.sh"
 CHECK_SCRIPT="$SCRIPT_DIR/../skills/wolfram-hart/scripts/wolfram-check.sh"
 
+if [[ ! -f "$EVAL_SCRIPT" ]]; then
+    echo "FATAL: wolfram-eval.sh not found at $EVAL_SCRIPT" >&2
+    return 1
+fi
+if [[ ! -f "$CHECK_SCRIPT" ]]; then
+    echo "FATAL: wolfram-check.sh not found at $CHECK_SCRIPT" >&2
+    return 1
+fi
+
 # Globals set by run_eval
 LAST_STDOUT=""
 LAST_STDERR=""

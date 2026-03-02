@@ -76,7 +76,7 @@ Quick-reference mapping from natural language to Wolfram functions:
 | ODE / diff eq | `DSolve` | `DSolve[y'[x] == -y[x], y[x], x]` |
 | prime factors | `FactorInteger` | `FactorInteger[360]` |
 | regression / fit | `LinearModelFit` | see `references/common-patterns.md` |
-| convert units | `UnitConvert` | `UnitConvert[Quantity[100,"Miles"],"Km"]` |
+| convert units | `UnitConvert` | `UnitConvert[Quantity[100,"Miles"],"Kilometers"]` |
 | Fourier transform | `FourierTransform` | `FourierTransform[Exp[-x^2], x, w]` |
 | optimize / minimize | `NMinimize` / `Minimize` | `NMinimize[x^4 - 3x^2 + x, x]` |
 | sum of series | `Sum` | `Sum[1/n^2, {n, 1, Infinity}]` |
