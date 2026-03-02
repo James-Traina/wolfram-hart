@@ -48,6 +48,10 @@ wolfram-hart plugin.
 3. Flag performance issues and suggest optimizations
 4. Verify output handling (especially for graphics)
 
+**Before reviewing:**
+If no Wolfram code is visible in the conversation context, ask the user to paste
+the code they want reviewed. Do not fabricate a review of non-existent code.
+
 **Review Checklist:**
 
 Run through each of these checks on the provided code. Only report issues that

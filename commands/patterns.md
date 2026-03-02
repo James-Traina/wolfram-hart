@@ -36,3 +36,6 @@ Use the Read tool to read
 then extract and display only the matching pattern(s) in full, including the bash
 invocation and expected output. Match by section number or case-insensitive keyword
 in the title/content. If no match, suggest the closest patterns from the index above.
+
+If the Read tool fails (file not found), tell the user the patterns reference could
+not be loaded and suggest running `/wolfram-hart:check` to verify the installation.

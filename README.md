@@ -103,20 +103,20 @@ LaTeX, or an inline image for plots).
 
 ### Slash commands
 
-For direct control, three slash commands are available:
+Three slash commands give you direct access:
 
 ```
 /wolfram-hart:eval Integrate[Sin[x]^2, {x, 0, Pi}]
 ```
 
-Sends raw Wolfram Language code straight to the engine. Append a timeout
-(>= 10) as the last argument for heavy computations:
+This sends raw Wolfram code to the engine. Append a timeout (>= 10) for
+heavy computations:
 
 ```
 /wolfram-hart:eval NIntegrate[Sin[x^x], {x, 0, 5}] 60
 ```
 
-Check your Wolfram Engine installation:
+Check whether the Wolfram Engine is installed and licensed:
 
 ```
 /wolfram-hart:check
@@ -132,15 +132,12 @@ Browse the 15 built-in computation patterns:
 
 ### Code review agent
 
-The plugin includes a `wolfram-reviewer` agent that checks Wolfram Language
-code for common mistakes: wrong capitalization, parentheses instead of square
-brackets, missing `Export` for graphics, semicolon issues, and more. It
-triggers automatically when Claude detects a failed computation, or you can
-ask for a review explicitly.
+The plugin also has a `wolfram-reviewer` agent that catches common Wolfram
+Language mistakes — wrong capitalization, parentheses instead of square
+brackets, missing `Export` on graphics, semicolon problems. Claude may invoke
+it when a computation fails, or you can ask for a review yourself.
 
 ## How it works
-
-The plugin has a skill, three slash commands, and a code-review agent.
 
 ```
 .claude-plugin/
