@@ -3,17 +3,18 @@
 A Claude Code plugin that gives Claude access to a locally installed Wolfram
 Engine. When a math or science question comes up, Claude translates it to
 Wolfram Language, runs it through `wolframscript`, and presents the result.
-Plots get saved as PNGs and displayed inline. No special syntax or manual
-triggering needed.
+Plots get saved as PNGs and displayed inline. No special syntax needed.
 
-The full Wolfram Language is available: symbolic algebra, calculus, ODEs, linear
-algebra, optimization, number theory, statistics, transforms, data analysis,
-unit conversions, image processing, and graph theory.
+Covers symbolic algebra, calculus, linear algebra, statistics, plotting, and
+much more. If the Wolfram Language can do it, this plugin makes it available.
 
 ## Prerequisites
 
 You need the Wolfram Engine installed and activated on your machine. The engine
 is free for personal and non-commercial use.
+
+> **Windows is not supported natively.** The plugin's scripts are bash-only.
+> Use WSL2 with a Linux install of the Wolfram Engine if you're on Windows.
 
 ### macOS (Homebrew)
 
@@ -53,14 +54,14 @@ wolframscript   # activate license
 
 ### Docker
 
-If you prefer not to install anything on your host:
+The Docker image is useful for trying Wolfram Language interactively, but this
+plugin expects `wolframscript` to be on the host filesystem. Running the plugin
+against a containerized engine is not currently supported.
 
 ```bash
+# For standalone use only (not compatible with this plugin)
 docker run -it wolframresearch/wolframengine
 ```
-
-Note that the Docker approach requires routing `wolframscript` calls into the
-container, which is more involved. A native install is simpler for daily use.
 
 ### Verifying the installation
 
@@ -75,19 +76,18 @@ interactively to complete activation.
 
 ## Installing the plugin
 
-Point Claude Code at the plugin directory:
+Tell Claude Code where the plugin lives:
 
 ```bash
 claude --plugin-dir /path/to/wolfram-skill
 ```
 
-For permanent installation, add the path to your Claude Code settings or
-symlink the directory into your plugins folder.
+For permanent installation, add the path to your Claude Code settings file
+(`~/.claude/settings.json` under the `plugins` key).
 
 ## Usage
 
-No special syntax is needed. Ask Claude a math question and it will use the
-Wolfram Engine automatically:
+Ask Claude a math question and it will call the Wolfram Engine on its own:
 
 - "Integrate sin(x)^2 from 0 to pi"
 - "Plot x^3 - 6x^2 + 11x - 6 and mark the roots"
@@ -97,52 +97,108 @@ Wolfram Engine automatically:
 - "Factor 123456789"
 - "Convert 100 miles to kilometers"
 
-Claude picks the right Wolfram functions, runs the code, and formats the output.
+Claude translates the question to Wolfram Language, calls `wolfram-eval.sh`,
+reads the output, and presents it in whatever format makes sense (plain text,
+LaTeX, or an inline image for plots).
 
 ## How it works
 
 The plugin is a single Claude Code skill with two shell scripts and three
-reference files:
+reference files.
 
 ```
+.claude-plugin/
+  plugin.json                         plugin manifest (name, version)
 skills/wolfram/
-  SKILL.md                          instructions loaded when the skill triggers
+  SKILL.md                            instructions loaded when the skill triggers
   scripts/
-    wolfram-eval.sh                 executes Wolfram code through a temp file
-    wolfram-check.sh                reports install status and license info
+    wolfram-eval.sh                   executes Wolfram code via a temp file
+    wolfram-check.sh                  reports install status and license info
   references/
-    wolfram-language-guide.md       function reference organized by domain
-    common-patterns.md              15 ready-to-use computation patterns
-    output-formats.md               output formatting and error detection
+    wolfram-language-guide.md         function reference organized by domain
+    common-patterns.md                copy-paste computation patterns
+    output-formats.md                 output formatting and error detection
+tests/
+  run-tests.sh                        test runner (discovers and runs test_* functions)
+  helpers.sh                          assertion library and run_eval wrapper
+  batch-01.sh .. batch-10.sh          100 tests across 10 domain batches
 ```
 
-`wolfram-eval.sh` is the only interface to the engine. It writes code to a
-temporary file (to avoid shell-quoting problems with Wolfram's bracket syntax),
-runs `wolframscript -f <file> -print`, applies a configurable timeout, and
-returns structured output with warnings separated from results.
+### Why a temp file?
 
-The SKILL.md tells Claude to compute without asking for confirmation and to
-batch related work into a single kernel call (the kernel takes 2-3s to start,
-so fewer calls is better).
+Wolfram Language uses `[`, `]`, `{`, `}`, `'`, and `$` constantly. Every one of
+those characters means something to the shell. Instead of fighting quoting
+issues, `wolfram-eval.sh` writes the code to a temporary `.wl` file, passes it
+to `wolframscript -f`, and cleans up afterward. This makes the full Wolfram
+Language available without any escaping workarounds.
+
+### Timeouts
+
+`wolframscript` can hang on bad inputs or computations that blow up. The eval
+script wraps the call in `timeout` (or `gtimeout` on macOS) with a configurable
+limit. The default is 30 seconds; Claude passes longer timeouts automatically
+for heavy numerical work. If neither `timeout` nor `gtimeout` is available, the
+computation runs without a time limit.
+
+### Structured output
+
+The eval script separates results from warnings. Wolfram's diagnostic messages
+(like `Power::infy`) either appear inline in stdout or get routed to stderr
+depending on the wolframscript version. When stderr content is present, it
+appears after a `---WARNINGS---` marker so Claude can distinguish warnings
+from results.
+
+### Exit codes
+
+| Code | Meaning |
+|------|---------|
+| 0 | Success. Result on stdout. |
+| 1 | `wolframscript` not found (or missing argument). |
+| 2 | `wolframscript` failed with no usable output. |
+| 3 | Computation timed out. |
+
+## Testing
+
+The test suite validates 100 behaviors across 10 domain batches. Each test
+calls `wolfram-eval.sh` with real Wolfram code and checks the output.
+
+```bash
+# Run all 100 tests
+bash tests/run-tests.sh
+
+# Run a single batch
+bash tests/run-tests.sh tests/batch-01.sh
+
+# Run specific batches
+bash tests/run-tests.sh tests/batch-03.sh tests/batch-05.sh
+```
+
+The batches cover script mechanics, arithmetic, algebra, calculus, linear
+algebra, output formatting, plotting, number theory, statistics, and edge
+cases. Each batch takes 30-90 seconds depending on how many kernel startups
+are involved (plotting batches are slower).
+
+Tests require a working `wolframscript` installation. There are no other
+dependencies.
 
 ## Troubleshooting
 
-**"wolframscript not found"** -- The engine is not installed or not in your PATH.
-Follow the installation steps above. On macOS with Homebrew, make sure
+**"wolframscript not found"** -- The engine is not installed or not in your
+PATH. Follow the installation steps above. On macOS with Homebrew, make sure
 `/opt/homebrew/bin` is in your PATH.
 
 **License activation fails** -- Run `wolframscript` interactively in a terminal
-(not through Claude) and sign in with your Wolfram ID. Activation only needs to
-happen once.
+(not through Claude) and sign in with your Wolfram ID. Activation only needs
+to happen once.
 
-**Computation is slow** -- The Wolfram kernel takes 2-3 seconds to start on each
-call. This is normal. The skill batches related work into a single call to
-minimize this overhead.
+**Computation is slow** -- The Wolfram kernel takes a few seconds to start on
+each call. This is normal. The skill batches related work into a single call
+to minimize the overhead.
 
-**Timeout on complex computations** -- The default timeout is 30 seconds. For
-heavy numerical work, Claude will pass a longer timeout automatically. If a
-computation consistently times out, the expression may need simplification or
-a numerical rather than symbolic approach.
+**Timeout on heavy computations** -- The default timeout is 30 seconds. For
+numerical ODEs, 3D plots, or optimization problems, Claude will pass a longer
+timeout automatically. If a computation consistently times out, it may need
+simplification or a numerical rather than symbolic approach.
 
 ## License
 

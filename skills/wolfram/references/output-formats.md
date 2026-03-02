@@ -110,7 +110,9 @@ ComplexInfinity
 
 In this example the result is `ComplexInfinity`; the lines above it are the
 warning. The eval script separates these with a `---WARNINGS---` marker when
-they are written to stderr.
+they are written to stderr. Note: whether warnings appear inline in stdout or
+after the marker depends on the wolframscript version. Some versions write
+warnings to stdout directly; others use stderr.
 
 ### Unevaluated Expressions
 

@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # Batch 5: Linear Algebra (tests 041-050)
+# Sourced by run-tests.sh. Defines test_* functions; do not execute directly.
 
 test_041_determinant_2x2() {
     run_eval 'Det[{{1,2},{3,4}}]'
@@ -8,8 +9,8 @@ test_041_determinant_2x2() {
 
 test_042_inverse_identity() {
     run_eval 'Inverse[{{1,0},{0,1}}]'
-    assert_contains "$LAST_STDOUT" "1" "identity inverse should contain 1"
-    assert_contains "$LAST_STDOUT" "0" "identity inverse should contain 0"
+    assert_contains "$LAST_STDOUT" "{1, 0}" "identity inverse should contain {1, 0}"
+    assert_contains "$LAST_STDOUT" "{0, 1}" "identity inverse should contain {0, 1}"
 }
 
 test_043_eigenvalues() {

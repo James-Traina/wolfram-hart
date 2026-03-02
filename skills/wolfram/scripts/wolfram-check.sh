@@ -8,6 +8,10 @@
 #
 # Usage
 #   wolfram-check.sh
+#
+# Exit Codes
+#   0   Installation found and checks completed.
+#   1   wolframscript could not be found.
 
 set -euo pipefail
 
@@ -70,14 +74,17 @@ run_with_timeout() {
 # ---------------------------------------------------------------------------
 # Version
 # ---------------------------------------------------------------------------
-VERSION=$("$WOLFRAMSCRIPT" -version 2>&1 || true)
+VERSION=$(run_with_timeout 15 "$WOLFRAMSCRIPT" -version 2>&1 || true)
 echo "version: $VERSION"
 
 # ---------------------------------------------------------------------------
 # License check (runs a trivial computation)
 # ---------------------------------------------------------------------------
-RESULT=$(run_with_timeout 15 "$WOLFRAMSCRIPT" -code '2+2' 2>&1 || true)
-if [[ "$RESULT" == *"4"* ]]; then
+RESULT=$(run_with_timeout 15 "$WOLFRAMSCRIPT" -code '2+2' 2>/dev/null || true)
+# Trim whitespace and check for exact "4" on the first line to avoid false
+# positives from error messages that happen to contain the digit 4.
+FIRST_LINE=$(printf '%s' "$RESULT" | head -1 | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+if [[ "$FIRST_LINE" == "4" ]]; then
     echo "licensed: YES"
     echo "test: 2+2 = 4"
 else

@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # Batch 8: Number Theory & Transforms (tests 071-080)
+# Sourced by run-tests.sh. Defines test_* functions; do not execute directly.
 
 test_071_factor_integer() {
     run_eval 'FactorInteger[360]'
@@ -40,8 +41,7 @@ test_077_fourier_transform() {
 test_078_laplace_transform() {
     run_eval 'LaplaceTransform[Sin[t], t, s]'
     # Should be 1/(1+s^2)
-    assert_contains "$LAST_STDOUT" "1" "Laplace of sin(t) should contain 1"
-    assert_contains "$LAST_STDOUT" "s" "Laplace of sin(t) should contain s"
+    assert_contains "$LAST_STDOUT" "s^2" "Laplace of sin(t) should contain s^2"
 }
 
 test_079_inverse_laplace() {

@@ -17,8 +17,10 @@
 #   timeout_seconds   Maximum wall-clock time for the computation (default: 30).
 #
 # Exit Codes
-#   0   Success (result printed to stdout).
-#   1   wolframscript could not be found on this system.
+#   0   Success (result printed to stdout). Also used when wolframscript exits
+#       non-zero but still produces output — the partial result is printed and
+#       a note is appended to the warnings section.
+#   1   wolframscript could not be found on this system (or missing argument).
 #   2   wolframscript returned a non-zero exit code with no usable output.
 #   3   The computation exceeded the timeout.
 
@@ -87,8 +89,9 @@ fi
 # ---------------------------------------------------------------------------
 # Execute
 # ---------------------------------------------------------------------------
-# -f   read code from file (avoids argument-length and quoting limits)
-# -print   send the result of the final expression to stdout
+# -f       read code from file (avoids argument-length and quoting limits)
+# -print   required: tells wolframscript to print the final expression's
+#          result to stdout (without it, -f produces no output)
 # ---------------------------------------------------------------------------
 RESULT=""
 EXIT_CODE=0
@@ -104,31 +107,38 @@ STDERR_CONTENT=$(cat "$STDERR_FILE" 2>/dev/null || true)
 # ---------------------------------------------------------------------------
 # Interpret exit status
 # ---------------------------------------------------------------------------
+# Exit code 124 = GNU timeout/gtimeout killed the process
 if [[ $EXIT_CODE -eq 124 ]]; then
-    echo "TIMEOUT: computation exceeded the ${TIMEOUT}s limit."
-    echo "Increase the timeout or simplify the expression."
+    printf '%s\n' "TIMEOUT: computation exceeded the ${TIMEOUT}s limit."
+    printf '%s\n' "Increase the timeout or simplify the expression."
     exit 3
 fi
 
 if [[ $EXIT_CODE -ne 0 && -z "$RESULT" ]]; then
-    echo "ERROR: wolframscript exited with code $EXIT_CODE"
-    [[ -n "$STDERR_CONTENT" ]] && echo "STDERR: $STDERR_CONTENT"
+    printf '%s\n' "ERROR: wolframscript exited with code $EXIT_CODE"
+    [[ -n "$STDERR_CONTENT" ]] && printf '%s\n' "STDERR: $STDERR_CONTENT"
     exit 2
 fi
 
 # ---------------------------------------------------------------------------
 # Emit output
 # ---------------------------------------------------------------------------
-# Print the computation result, then any Wolfram warning messages that were
-# written to stderr (e.g. Power::infy) separated by a marker line.
+# Print the computation result (using printf to avoid echo interpreting flags
+# like -e or -n that can appear in Wolfram expressions), then any warning
+# messages separated by a marker line.
 # ---------------------------------------------------------------------------
 if [[ -n "$RESULT" ]]; then
-    echo "$RESULT"
+    printf '%s\n' "$RESULT"
+fi
+
+if [[ $EXIT_CODE -ne 0 ]]; then
+    # wolframscript failed but produced partial output — surface the exit code
+    STDERR_CONTENT="wolframscript exited with code $EXIT_CODE${STDERR_CONTENT:+; $STDERR_CONTENT}"
 fi
 
 if [[ -n "$STDERR_CONTENT" ]]; then
-    echo "---WARNINGS---"
-    echo "$STDERR_CONTENT"
+    printf '%s\n' "---WARNINGS---"
+    printf '%s\n' "$STDERR_CONTENT"
 fi
 
 exit 0

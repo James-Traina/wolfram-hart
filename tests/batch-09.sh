@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # Batch 9: Statistics, Probability & Units (tests 081-090)
+# Sourced by run-tests.sh. Defines test_* functions; do not execute directly.
 
 test_081_mean() {
     run_eval 'Mean[{1,2,3,4,5}]'
@@ -19,14 +20,8 @@ test_083_std_dev() {
 
 test_084_variance() {
     run_eval 'Variance[{1,2,3,4,5}]'
-    # Wolfram uses sample variance by default: 5/2
-    local first_line
-    first_line=$(echo "$LAST_STDOUT" | head -1)
-    if [[ "$first_line" == "5/2" || "$first_line" == "2" ]]; then
-        _pass "variance is $first_line"
-    else
-        _fail "variance should be 5/2 or 2 (got $first_line)"
-    fi
+    # Wolfram uses sample variance (n-1 denominator): 5/2
+    assert_eq "$(echo "$LAST_STDOUT" | head -1)" "5/2" "sample variance of 1..5 should be 5/2"
 }
 
 test_085_random_variate() {
@@ -64,6 +59,7 @@ test_089_temperature_conversion() {
 test_090_linear_model_fit() {
     run_eval 'Module[{data, fit}, data = Table[{x, 2 x + 1}, {x, 0, 10}]; fit = LinearModelFit[data, x, x]; fit["BestFitParameters"]]' 60
     assert_eq "$LAST_EXIT" "0" "LinearModelFit should succeed"
-    assert_contains "$LAST_STDOUT" "1" "best fit should contain intercept ~1"
-    assert_contains "$LAST_STDOUT" "2" "best fit should contain slope ~2"
+    # Exact data: intercept = 1., slope = 2.
+    assert_contains "$LAST_STDOUT" "1." "best fit should contain intercept 1."
+    assert_contains "$LAST_STDOUT" "2." "best fit should contain slope 2."
 }

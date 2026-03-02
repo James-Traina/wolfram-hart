@@ -101,7 +101,8 @@ Module[{data, fit, stats},
 ## 7. Differential Equations
 
 When code contains derivative apostrophes (`y'[x]`), use double quotes for the
-bash argument and escape inner double quotes with `\"`:
+bash argument and escape inner double quotes with `\"`. Also escape dollar signs
+(`\$`) if the Wolfram code references system variables like `$VersionNumber`:
 
 ```bash
 bash ${CLAUDE_PLUGIN_ROOT}/skills/wolfram/scripts/wolfram-eval.sh "

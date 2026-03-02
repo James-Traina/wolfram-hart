@@ -1,17 +1,18 @@
 #!/usr/bin/env bash
 # Batch 3: Algebra & Solving (tests 021-030)
+# Sourced by run-tests.sh. Defines test_* functions; do not execute directly.
 
 test_021_quadratic() {
     run_eval 'Solve[x^2 - 4 == 0, x]'
-    assert_contains "$LAST_STDOUT" "2" "quadratic roots should contain 2"
-    assert_contains "$LAST_STDOUT" "-2" "quadratic roots should contain -2"
+    assert_contains "$LAST_STDOUT" "x -> 2" "quadratic roots should contain x -> 2"
+    assert_contains "$LAST_STDOUT" "x -> -2" "quadratic roots should contain x -> -2"
 }
 
 test_022_cubic() {
     run_eval 'Solve[x^3 - 6 x^2 + 11 x - 6 == 0, x]'
-    assert_contains "$LAST_STDOUT" "1" "cubic should have root 1"
-    assert_contains "$LAST_STDOUT" "2" "cubic should have root 2"
-    assert_contains "$LAST_STDOUT" "3" "cubic should have root 3"
+    assert_contains "$LAST_STDOUT" "x -> 1" "cubic should have root x -> 1"
+    assert_contains "$LAST_STDOUT" "x -> 2" "cubic should have root x -> 2"
+    assert_contains "$LAST_STDOUT" "x -> 3" "cubic should have root x -> 3"
 }
 
 test_023_factor() {
@@ -37,8 +38,7 @@ test_025_trig_identity() {
 test_026_partial_fractions() {
     run_eval 'Apart[1/(x^2 - 1)]'
     # Partial fractions of 1/(x^2-1) = 1/(2(x-1)) - 1/(2(x+1))
-    assert_contains "$LAST_STDOUT" "1" "partial fractions should contain terms"
-    assert_contains "$LAST_STDOUT" "x" "partial fractions should contain x"
+    assert_contains "$LAST_STDOUT" "(-1 + x)" "partial fractions should contain (x-1) term"
 }
 
 test_027_nsolve_quintic() {

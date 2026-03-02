@@ -2,6 +2,22 @@
 #
 # helpers.sh — assertion library and run_eval wrapper for wolfram-skill tests
 #
+# This file is SOURCED by run-tests.sh, not executed directly.
+#
+# Globals set by run_eval:
+#   LAST_STDOUT   captured stdout from wolfram-eval.sh
+#   LAST_STDERR   captured stderr from wolfram-eval.sh
+#   LAST_EXIT     exit code from wolfram-eval.sh
+#
+# Assertion return codes:
+#   0  pass
+#   1  fail
+#   2  skip
+#
+# The _CURRENT_TEST_FAILED flag is set by any failing assertion. The runner
+# checks this flag after each test function returns, so a test with multiple
+# assertions correctly fails if ANY assertion fails (not just the last one).
+#
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 EVAL_SCRIPT="$SCRIPT_DIR/../skills/wolfram/scripts/wolfram-eval.sh"
@@ -11,6 +27,9 @@ CHECK_SCRIPT="$SCRIPT_DIR/../skills/wolfram/scripts/wolfram-check.sh"
 LAST_STDOUT=""
 LAST_STDERR=""
 LAST_EXIT=0
+
+# Per-test failure tracking — set by _fail, checked by the runner
+_CURRENT_TEST_FAILED=0
 
 # Counters (managed by runner, but initialized here)
 PASS_COUNT=${PASS_COUNT:-0}
@@ -41,10 +60,15 @@ run_eval() {
 # ---------------------------------------------------------------------------
 # Assertions
 # ---------------------------------------------------------------------------
+# Every assertion prints PASS or FAIL and returns 0 or 1. On failure, the
+# global _CURRENT_TEST_FAILED flag is also set so the runner can detect
+# failures even when a later assertion in the same test passes.
+# ---------------------------------------------------------------------------
 
 _fail() {
     local msg="$1"
     echo "  FAIL: $msg"
+    _CURRENT_TEST_FAILED=1
     return 1
 }
 
@@ -106,6 +130,7 @@ assert_file_size_gt() {
     local path="$1" min_bytes="$2" msg="${3:-file should be larger than $min_bytes bytes}"
     if [[ -f "$path" ]]; then
         local size
+        # macOS stat uses -f%z, Linux uses -c%s
         size=$(stat -f%z "$path" 2>/dev/null || stat -c%s "$path" 2>/dev/null || echo 0)
         if [[ "$size" -gt "$min_bytes" ]]; then
             _pass "$msg (size: $size bytes)"
@@ -119,8 +144,8 @@ assert_file_size_gt() {
 
 assert_numeric() {
     local value="$1" msg="${2:-should be numeric}"
-    # Strip leading/trailing whitespace
-    value=$(echo "$value" | xargs)
+    # Strip leading/trailing whitespace (printf avoids echo -n pitfalls)
+    value=$(printf '%s' "$value" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
     if [[ "$value" =~ ^-?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?$ ]]; then
         _pass "$msg"
     else

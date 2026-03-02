@@ -85,7 +85,8 @@ Integrate[f[x], x]                       indefinite integral
 Integrate[f[x], {x, a, b}]              definite integral
 Integrate[f[x,y], {x,a,b}, {y,c,d}]    double integral
 Limit[Sin[x]/x, x -> 0]                 limit
-Limit[f[x], x -> a, Direction -> -1]    one-sided limit
+Limit[f[x], x -> a, Direction -> -1]    right-sided limit (from above)
+Limit[f[x], x -> a, Direction ->  1]    left-sided limit (from below)
 Series[Exp[x], {x, 0, 5}]              Taylor series to order 5
 Normal[%]                                series -> polynomial
 Sum[1/n^2, {n, 1, Infinity}]            infinite sum

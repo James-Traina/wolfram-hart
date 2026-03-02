@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # Batch 6: Output Formatting (tests 051-060)
+# Sourced by run-tests.sh. Defines test_* functions; do not execute directly.
 
 test_051_texform() {
     run_eval 'ToString[TeXForm[x^2/3]]'

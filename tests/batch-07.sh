@@ -1,12 +1,6 @@
 #!/usr/bin/env bash
 # Batch 7: Plotting & File Export (tests 061-070)
-
-# Clean up any leftover test files
-_cleanup_plot_files() {
-    rm -f /tmp/test_plot_*.png /tmp/test_3d_*.png /tmp/test_svg_*.svg \
-          /tmp/test_listplot_*.png /tmp/test_hist_*.png /tmp/test_theme_*.png \
-          /tmp/test_contour_*.png
-}
+# Sourced by run-tests.sh. Defines test_* functions; do not execute directly.
 
 test_061_basic_plot_export() {
     local f="/tmp/test_plot_061.png"

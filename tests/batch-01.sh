@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # Batch 1: Script Mechanics (tests 001-010)
+# Sourced by run-tests.sh. Defines test_* functions; do not execute directly.
 
 test_001_basic_eval() {
     run_eval '2+2'

@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # Batch 10: Edge Cases & Error Handling (tests 091-100)
+# Sourced by run-tests.sh. Defines test_* functions; do not execute directly.
 
 test_091_unevaluated_misspelling() {
     run_eval 'Solvee[x^2 == 4, x]'
