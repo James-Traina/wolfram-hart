@@ -2,12 +2,15 @@
 #
 # wolfram-eval.sh
 #
-# Executes Wolfram Language code through a locally installed wolframscript binary.
-# Designed to be called by Claude Code as the primary interface to the Wolfram Engine.
+# Executes Wolfram Language code through a locally installed wolframscript
+# binary, in either local (default) or cloud mode.
 #
-# The script writes incoming code to a temporary file before passing it to
-# wolframscript. This sidesteps every shell-quoting issue that would otherwise
-# arise from Wolfram's bracket-heavy syntax and derivative apostrophes.
+#   Local mode  — requires the Wolfram Engine installed and activated.
+#   Cloud mode  — requires only the wolframscript binary and a Wolfram account.
+#                 No Engine download needed. Set WOLFRAM_MODE=cloud to use it.
+#
+# Auto mode (default) tries local first and falls back to cloud if the local
+# kernel is unavailable.
 #
 # Usage
 #   wolfram-eval.sh <code> [timeout_seconds]
@@ -15,6 +18,9 @@
 # Arguments
 #   code              Wolfram Language code to evaluate.
 #   timeout_seconds   Maximum wall-clock time for the computation (default: 30).
+#
+# Environment
+#   WOLFRAM_MODE   auto (default) | local | cloud
 #
 # Exit Codes
 #   0   Success (result printed to stdout). Also used when wolframscript exits
@@ -28,6 +34,7 @@ set -euo pipefail
 
 readonly CODE="${1:?Usage: wolfram-eval.sh <code> [timeout]}"
 readonly TIMEOUT="${2:-30}"
+readonly WOLFRAM_MODE="${WOLFRAM_MODE:-auto}"
 
 # ---------------------------------------------------------------------------
 # Locate wolframscript
@@ -38,12 +45,20 @@ if [[ -z "$WOLFRAMSCRIPT" ]]; then
     cat <<'MISSING'
 NOT_INSTALLED: wolframscript is not available on this system.
 
-To install the free Wolfram Engine:
-  macOS   — brew install --cask wolfram-engine
-  Linux   — https://www.wolfram.com/engine/ (download .deb / .rpm)
-  Docker  — docker run -it wolframresearch/wolframengine
+Choose a setup path:
 
-After installation run "wolframscript" once to activate your license.
+Option A — Cloud evaluation (fastest setup, no Engine download):
+  macOS:  brew install wolframscript
+  Linux:  https://www.wolfram.com/wolframscript/ (download binary)
+  Then:   wolframscript -authenticate
+          export WOLFRAM_MODE=cloud   # add to ~/.zshrc or ~/.bashrc
+
+Option B — Local Engine (offline-capable, ~1 GB download):
+  macOS:  brew install --cask wolfram-engine
+  Linux:  https://www.wolfram.com/engine/ (download .deb / .rpm)
+  Then:   wolframscript   # sign in once to activate the license
+
+Run /wolfram-hart:check after setup to verify either option.
 MISSING
     exit 1
 fi
@@ -73,22 +88,65 @@ else
 fi
 
 # ---------------------------------------------------------------------------
+# run_wolframscript <use_cloud>
+#   use_cloud: "yes" to evaluate in the cloud, "no" for local.
+#   Sets global RESULT, EXIT_CODE, STDERR_CONTENT.
+# ---------------------------------------------------------------------------
+run_wolframscript() {
+    local use_cloud="$1"
+    RESULT="" EXIT_CODE=0
+    > "$STDERR_FILE"
+
+    # Build argument list; -cloud must come before -f to be recognised.
+    local ws_args
+    if [[ "$use_cloud" == "yes" ]]; then
+        ws_args=(-cloud -f "$TMPFILE" -print)
+    else
+        ws_args=(-f "$TMPFILE" -print)
+    fi
+
+    if [[ -n "$TIMEOUT_CMD" ]]; then
+        RESULT=$("$TIMEOUT_CMD" "${TIMEOUT}s" "$WOLFRAMSCRIPT" "${ws_args[@]}" 2>"$STDERR_FILE") || EXIT_CODE=$?
+    else
+        RESULT=$("$WOLFRAMSCRIPT" "${ws_args[@]}" 2>"$STDERR_FILE") || EXIT_CODE=$?
+    fi
+
+    STDERR_CONTENT=$(cat "$STDERR_FILE" 2>/dev/null || true)
+}
+
+# ---------------------------------------------------------------------------
 # Execute
 # ---------------------------------------------------------------------------
 # -f       read code from file (avoids argument-length and quoting limits)
 # -print   required: tells wolframscript to print the final expression's
 #          value to stdout (without it, -f produces no final expression value)
 # ---------------------------------------------------------------------------
-RESULT=""
-EXIT_CODE=0
+RESULT="" EXIT_CODE=0 STDERR_CONTENT=""
+BOTH_FAILED="no"
 
-if [[ -n "$TIMEOUT_CMD" ]]; then
-    RESULT=$("$TIMEOUT_CMD" "${TIMEOUT}s" "$WOLFRAMSCRIPT" -f "$TMPFILE" -print 2>"$STDERR_FILE") || EXIT_CODE=$?
-else
-    RESULT=$("$WOLFRAMSCRIPT" -f "$TMPFILE" -print 2>"$STDERR_FILE") || EXIT_CODE=$?
-fi
-
-STDERR_CONTENT=$(cat "$STDERR_FILE" 2>/dev/null || true)
+case "$WOLFRAM_MODE" in
+    cloud)
+        run_wolframscript "yes"
+        ;;
+    local)
+        run_wolframscript "no"
+        ;;
+    auto|*)
+        run_wolframscript "no"
+        # If local produced nothing, try cloud transparently.
+        if [[ $EXIT_CODE -ne 0 && -z "$RESULT" ]]; then
+            LOCAL_STDERR="$STDERR_CONTENT"
+            run_wolframscript "yes"
+            if [[ $EXIT_CODE -ne 0 && -z "$RESULT" ]]; then
+                BOTH_FAILED="yes"
+                # Preserve local stderr for diagnostics; prefix cloud stderr.
+                STDERR_CONTENT="${LOCAL_STDERR}${STDERR_CONTENT:+; cloud: $STDERR_CONTENT}"
+            fi
+            # On cloud success: proceed normally (cloud mode note omitted to
+            # keep output clean; /wolfram-hart:check shows the mode status).
+        fi
+        ;;
+esac
 
 # ---------------------------------------------------------------------------
 # Interpret exit status
@@ -101,9 +159,24 @@ if [[ $EXIT_CODE -eq 124 || $EXIT_CODE -eq 137 ]]; then
 fi
 
 if [[ $EXIT_CODE -ne 0 && -z "$RESULT" ]]; then
-    printf '%s\n' "ERROR: wolframscript exited with code $EXIT_CODE"
-    if [[ -n "$STDERR_CONTENT" ]]; then
-        printf '%s\n' "STDERR: $STDERR_CONTENT"
+    if [[ "$BOTH_FAILED" == "yes" ]]; then
+        cat <<'NOT_CONFIGURED'
+NOT_CONFIGURED: wolframscript was found but neither local nor cloud evaluation worked.
+
+To set up local evaluation:
+  Run "wolframscript" interactively to complete license activation.
+
+To set up cloud evaluation instead:
+  Run "wolframscript -authenticate" then add to your shell profile:
+    export WOLFRAM_MODE=cloud
+
+Run /wolfram-hart:check to see the detailed status of each mode.
+NOT_CONFIGURED
+    else
+        printf '%s\n' "ERROR: wolframscript exited with code $EXIT_CODE"
+        if [[ -n "$STDERR_CONTENT" ]]; then
+            printf '%s\n' "STDERR: $STDERR_CONTENT"
+        fi
     fi
     exit 2
 fi

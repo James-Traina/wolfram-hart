@@ -15,10 +15,10 @@ description: >-
 
 # Wolfram Engine
 
-Execute exact computation through a locally installed Wolfram Engine. The full
-Wolfram Language is available: symbolic algebra, calculus, differential equations,
-linear algebra, number theory, statistics, optimization, plotting, data analysis,
-and image processing.
+Execute exact computation through the Wolfram Engine, either locally installed
+or via Wolfram Cloud. The full Wolfram Language is available: symbolic algebra,
+calculus, differential equations, linear algebra, number theory, statistics,
+optimization, plotting, data analysis, and image processing.
 
 ## Autonomy Rules
 
@@ -41,8 +41,8 @@ adjust the code, and try once more before reporting the problem.
 
 **Skip the pre-flight check unless something fails.** Do not run
 `wolfram-check.sh` as a routine first step. Only run it if `wolfram-eval.sh`
-exits with code 1 (not installed), so the user gets actionable install
-instructions.
+exits with code 1 (not installed) or the output starts with `NOT_CONFIGURED`,
+so the user gets actionable setup instructions.
 
 ## Workflow
 
@@ -126,6 +126,12 @@ for heavy computations (numerical ODEs, large plots, optimization):
 bash ${CLAUDE_PLUGIN_ROOT}/skills/wolfram-hart/scripts/wolfram-eval.sh '<code>' 120
 ```
 
+**Evaluation mode.** The script respects the `WOLFRAM_MODE` environment
+variable: `auto` (default, tries local then cloud), `local`, or `cloud`.
+You do not need to set it — auto mode works transparently. When the user has
+set `WOLFRAM_MODE=cloud`, the `-cloud` flag is added to the wolframscript
+invocation and no local Engine is required.
+
 **Quoting.** Use single quotes around the code argument. When the code contains
 derivative apostrophes (`y'[x]`), switch to double quotes and escape the inner
 double quotes with `\"`:
@@ -181,8 +187,13 @@ Simplify[x^2 - 5x + 6 /. sol]  (* expect {0, 0} *)
 
 ## Troubleshooting
 
-**Not installed (exit 1).** The eval script prints install instructions. Relay
-them to the user.
+**Not installed (exit 1).** The eval script prints setup instructions covering
+both the cloud option (wolframscript binary + free account) and the local
+Engine option. Relay them to the user.
+
+**Not configured (output starts with `NOT_CONFIGURED`).** wolframscript was
+found but neither local nor cloud worked. Run `wolfram-check.sh` and relay
+its setup recommendations to the user.
 
 **Graphics prints `-Graphics-`.** The code forgot to call `Export`. Wrap the
 plot in `Export["/tmp/name.png", ...]`.
@@ -192,6 +203,9 @@ Wolfram code for an inner safety net on top of the script-level timeout.
 
 **Entity/knowledge-base queries are slow.** They fetch data over the internet on
 first use. Warn the user or fall back to an approximate answer.
+
+**Cloud evaluation is slow.** Cold-start latency for cloud kernels is higher
+than local. For repeated work, consider the local Engine option.
 
 ## Reference Files
 
@@ -204,4 +218,4 @@ Detailed syntax and cookbook patterns, loaded on demand:
 ## Scripts
 
 - **`scripts/wolfram-eval.sh`** -- The only interface to the engine. Always use this; never call `wolframscript` directly.
-- **`scripts/wolfram-check.sh`** -- Installation and license verification. Run only when `wolfram-eval.sh` exits with code 1.
+- **`scripts/wolfram-check.sh`** -- Checks both local and cloud mode status. Run when `wolfram-eval.sh` exits with code 1 or produces `NOT_CONFIGURED` output.

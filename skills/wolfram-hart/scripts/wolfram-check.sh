@@ -2,15 +2,15 @@
 #
 # wolfram-check.sh
 #
-# Reports the status of the local Wolfram Engine installation: binary location,
-# version string, license validity, and basic hardware info. The output is a
-# plain key-value listing designed for LLM consumption.
+# Reports the status of the Wolfram setup: binary location, version, local
+# engine license, cloud access, and the active WOLFRAM_MODE setting. The
+# output is a plain key-value listing designed for LLM consumption.
 #
 # Usage
 #   wolfram-check.sh
 #
 # Exit Codes
-#   0   Installation found and checks completed.
+#   0   Checks completed (one or both modes may still be unavailable).
 #   1   wolframscript could not be found.
 
 set -euo pipefail
@@ -23,21 +23,28 @@ source "$(dirname "${BASH_SOURCE[0]}")/_find-wolframscript.sh"
 if [[ -z "$WOLFRAMSCRIPT" ]]; then
     cat <<'MISSING'
 status: NOT_FOUND
+mode_set: (unset)
 
-wolframscript is not installed.
+wolframscript is not installed. Choose a setup path:
 
-Install the free Wolfram Engine:
-  macOS   — brew install --cask wolfram-engine
-  Linux   — https://www.wolfram.com/engine/ (download .deb / .rpm)
-  Docker  — docker run -it wolframresearch/wolframengine
+Option A — Cloud evaluation (fastest setup, no Engine download):
+  macOS:  brew install wolframscript
+  Linux:  https://www.wolfram.com/wolframscript/ (download binary)
+  Then:   wolframscript -authenticate
+          export WOLFRAM_MODE=cloud   # add to ~/.zshrc or ~/.bashrc
 
-After installing, run "wolframscript" once to activate your license.
+Option B — Local Engine (offline-capable, ~1 GB download):
+  macOS:  brew install --cask wolfram-engine
+  Linux:  https://www.wolfram.com/engine/ (download .deb / .rpm)
+  Then:   wolframscript   # sign in once to activate the license
 MISSING
     exit 1
 fi
 
+WOLFRAM_MODE="${WOLFRAM_MODE:-auto}"
 echo "status: FOUND"
 echo "path: $WOLFRAMSCRIPT"
+echo "mode_set: $WOLFRAM_MODE"
 
 # ---------------------------------------------------------------------------
 # Portable timeout wrapper
@@ -70,37 +77,85 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-# License check (runs a trivial computation)
+# Local engine check
 # ---------------------------------------------------------------------------
-LICENSE_STDERR_FILE=$(mktemp "${TMPDIR:-/tmp}/wolfram_chk_XXXXXX.txt")
-LICENSE_EXIT=0
-RESULT=$(run_with_timeout 15 "$WOLFRAMSCRIPT" -code '2+2' 2>"$LICENSE_STDERR_FILE") || LICENSE_EXIT=$?
-LICENSE_STDERR=$(cat "$LICENSE_STDERR_FILE" 2>/dev/null || true)
-rm -f "$LICENSE_STDERR_FILE"
+echo ""
+echo "--- local ---"
+LOCAL_STDERR_FILE=$(mktemp "${TMPDIR:-/tmp}/wolfram_chk_local_XXXXXX.txt")
+LOCAL_EXIT=0
+LOCAL_RESULT=$(run_with_timeout 15 "$WOLFRAMSCRIPT" -code '2+2' 2>"$LOCAL_STDERR_FILE") || LOCAL_EXIT=$?
+LOCAL_STDERR=$(cat "$LOCAL_STDERR_FILE" 2>/dev/null || true)
+rm -f "$LOCAL_STDERR_FILE"
 # Trim whitespace and check for exact "4" on the first line to avoid false
 # positives from error messages that happen to contain the digit 4.
-FIRST_LINE=$(printf '%s' "$RESULT" | head -1 | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
-if [[ "$FIRST_LINE" == "4" ]]; then
-    echo "licensed: YES"
-    echo "test: 2+2 = 4"
+LOCAL_FIRST=$(printf '%s' "$LOCAL_RESULT" | head -1 | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+if [[ "$LOCAL_FIRST" == "4" ]]; then
+    echo "local_licensed: YES"
+    echo "local_test: 2+2 = 4"
 else
-    echo "licensed: POSSIBLY_NO"
-    echo "test_output: $RESULT"
-    if [[ -n "$LICENSE_STDERR" ]]; then
-        echo "test_stderr: $LICENSE_STDERR"
+    echo "local_licensed: POSSIBLY_NO"
+    echo "local_test_output: $LOCAL_RESULT"
+    if [[ -n "$LOCAL_STDERR" ]]; then
+        echo "local_test_stderr: $LOCAL_STDERR"
     fi
-    echo "hint: run 'wolframscript' interactively to complete license activation"
+    echo "local_hint: run 'wolframscript' interactively to complete activation"
+fi
+
+# Engine details (local only, skipped if not licensed)
+if [[ "$LOCAL_FIRST" == "4" ]]; then
+    DETAILS_EXIT=0
+    DETAILS=$(run_with_timeout 15 "$WOLFRAMSCRIPT" -code \
+        'StringJoin[ToString[$VersionNumber], " | ", $SystemID, " | ", ToString[$ProcessorCount], " cores"]' \
+        2>&1) || DETAILS_EXIT=$?
+    if [[ $DETAILS_EXIT -ne 0 ]]; then
+        echo "engine: UNKNOWN (exited with code $DETAILS_EXIT)"
+    else
+        echo "engine: $DETAILS"
+    fi
 fi
 
 # ---------------------------------------------------------------------------
-# Engine details
+# Cloud check
 # ---------------------------------------------------------------------------
-DETAILS_EXIT=0
-DETAILS=$(run_with_timeout 15 "$WOLFRAMSCRIPT" -code \
-    'StringJoin[ToString[$VersionNumber], " | ", $SystemID, " | ", ToString[$ProcessorCount], " cores"]' \
-    2>&1) || DETAILS_EXIT=$?
-if [[ $DETAILS_EXIT -ne 0 ]]; then
-    echo "engine: UNKNOWN (exited with code $DETAILS_EXIT)"
+echo ""
+echo "--- cloud ---"
+CLOUD_STDERR_FILE=$(mktemp "${TMPDIR:-/tmp}/wolfram_chk_cloud_XXXXXX.txt")
+CLOUD_EXIT=0
+CLOUD_RESULT=$(run_with_timeout 30 "$WOLFRAMSCRIPT" -cloud -code '2+2' 2>"$CLOUD_STDERR_FILE") || CLOUD_EXIT=$?
+CLOUD_STDERR=$(cat "$CLOUD_STDERR_FILE" 2>/dev/null || true)
+rm -f "$CLOUD_STDERR_FILE"
+CLOUD_FIRST=$(printf '%s' "$CLOUD_RESULT" | head -1 | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+if [[ "$CLOUD_FIRST" == "4" ]]; then
+    echo "cloud_available: YES"
+    echo "cloud_test: 2+2 = 4"
 else
-    echo "engine: $DETAILS"
+    echo "cloud_available: NO"
+    echo "cloud_test_output: $CLOUD_RESULT"
+    if [[ -n "$CLOUD_STDERR" ]]; then
+        echo "cloud_test_stderr: $CLOUD_STDERR"
+    fi
+    echo "cloud_hint: run 'wolframscript -authenticate' to set up cloud access"
+fi
+
+# ---------------------------------------------------------------------------
+# Setup recommendations
+# ---------------------------------------------------------------------------
+echo ""
+echo "--- setup ---"
+LOCAL_OK="$( [[ "$LOCAL_FIRST" == "4" ]] && echo yes || echo no )"
+CLOUD_OK="$( [[ "$CLOUD_FIRST" == "4" ]] && echo yes || echo no )"
+
+if [[ "$LOCAL_OK" == "yes" && "$CLOUD_OK" == "yes" ]]; then
+    echo "recommended_mode: auto (both local and cloud are available)"
+elif [[ "$LOCAL_OK" == "yes" ]]; then
+    echo "recommended_mode: local (Engine licensed; cloud not configured)"
+elif [[ "$CLOUD_OK" == "yes" ]]; then
+    echo "recommended_mode: cloud"
+    echo "recommended_action: add 'export WOLFRAM_MODE=cloud' to ~/.zshrc or ~/.bashrc"
+else
+    echo "recommended_mode: NONE — neither mode is working"
+    echo ""
+    echo "To fix local:  run 'wolframscript' interactively to activate the license"
+    echo "To fix cloud:  run 'wolframscript -authenticate'"
+    echo "               then add 'export WOLFRAM_MODE=cloud' to your shell profile"
 fi
