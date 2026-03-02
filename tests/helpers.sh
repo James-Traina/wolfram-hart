@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# helpers.sh — assertion library and run_eval wrapper for wolfram-skill tests
+# helpers.sh — assertion library and run_eval wrapper for wolfram-hart tests
 #
 # This file is SOURCED by run-tests.sh, not executed directly.
 #
@@ -20,8 +20,8 @@
 #
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-EVAL_SCRIPT="$SCRIPT_DIR/../skills/wolfram/scripts/wolfram-eval.sh"
-CHECK_SCRIPT="$SCRIPT_DIR/../skills/wolfram/scripts/wolfram-check.sh"
+EVAL_SCRIPT="$SCRIPT_DIR/../skills/wolfram-hart/scripts/wolfram-eval.sh"
+CHECK_SCRIPT="$SCRIPT_DIR/../skills/wolfram-hart/scripts/wolfram-check.sh"
 
 # Globals set by run_eval
 LAST_STDOUT=""

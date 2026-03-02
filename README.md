@@ -1,4 +1,4 @@
-# wolfram-skill
+# wolfram-hart
 
 A Claude Code plugin that gives Claude access to a locally installed Wolfram
 Engine. When a math or science question comes up, Claude translates it to
@@ -79,7 +79,7 @@ interactively to complete activation.
 Tell Claude Code where the plugin lives:
 
 ```bash
-claude --plugin-dir /path/to/wolfram-skill
+claude --plugin-dir /path/to/wolfram-hart
 ```
 
 For permanent installation, add the path to your Claude Code settings file
@@ -109,7 +109,7 @@ reference files.
 ```
 .claude-plugin/
   plugin.json                         plugin manifest (name, version)
-skills/wolfram/
+skills/wolfram-hart/
   SKILL.md                            instructions loaded when the skill triggers
   scripts/
     wolfram-eval.sh                   executes Wolfram code via a temp file

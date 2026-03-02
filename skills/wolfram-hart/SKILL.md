@@ -109,14 +109,14 @@ then use the Read tool to show the image to the user.
 Run all code through the wrapper script:
 
 ```bash
-bash ${CLAUDE_PLUGIN_ROOT}/skills/wolfram/scripts/wolfram-eval.sh '<code>' [timeout]
+bash ${CLAUDE_PLUGIN_ROOT}/skills/wolfram-hart/scripts/wolfram-eval.sh '<code>' [timeout]
 ```
 
 The default timeout is 30 seconds. Pass a higher value as the second argument
 for heavy computations (numerical ODEs, large plots, optimization):
 
 ```bash
-bash ${CLAUDE_PLUGIN_ROOT}/skills/wolfram/scripts/wolfram-eval.sh '<code>' 120
+bash ${CLAUDE_PLUGIN_ROOT}/skills/wolfram-hart/scripts/wolfram-eval.sh '<code>' 120
 ```
 
 **Quoting.** Use single quotes around the code argument. When the code contains

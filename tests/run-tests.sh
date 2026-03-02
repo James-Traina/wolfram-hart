@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# run-tests.sh — minimal test runner for wolfram-skill
+# run-tests.sh — minimal test runner for wolfram-hart
 #
 # Usage:
 #   bash tests/run-tests.sh                    # run all batches
@@ -30,7 +30,7 @@ else
 fi
 
 echo "========================================"
-echo " wolfram-skill test suite"
+echo " wolfram-hart test suite"
 echo "========================================"
 echo ""
 
