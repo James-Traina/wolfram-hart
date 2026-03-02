@@ -101,10 +101,46 @@ Claude translates the question to Wolfram Language, calls `wolfram-eval.sh`,
 reads the output, and presents it in whatever format makes sense (plain text,
 LaTeX, or an inline image for plots).
 
+### Slash commands
+
+For direct control, three slash commands are available:
+
+```
+/wolfram-hart:eval Integrate[Sin[x]^2, {x, 0, Pi}]
+```
+
+Sends raw Wolfram Language code straight to the engine. Append a timeout
+(>= 10) as the last argument for heavy computations:
+
+```
+/wolfram-hart:eval NIntegrate[Sin[x^x], {x, 0, 5}] 60
+```
+
+Check your Wolfram Engine installation:
+
+```
+/wolfram-hart:check
+```
+
+Browse the 15 built-in computation patterns:
+
+```
+/wolfram-hart:patterns            # show index
+/wolfram-hart:patterns 7          # show pattern #7 (Differential Equations)
+/wolfram-hart:patterns plot       # show all plotting patterns
+```
+
+### Code review agent
+
+The plugin includes a `wolfram-reviewer` agent that checks Wolfram Language
+code for common mistakes: wrong capitalization, parentheses instead of square
+brackets, missing `Export` for graphics, semicolon issues, and more. It
+triggers automatically when Claude detects a failed computation, or you can
+ask for a review explicitly.
+
 ## How it works
 
-The plugin is a single Claude Code skill with two shell scripts and three
-reference files.
+The plugin has a skill, three slash commands, and a code-review agent.
 
 ```
 .claude-plugin/
@@ -118,6 +154,12 @@ skills/wolfram-hart/
     wolfram-language-guide.md         function reference organized by domain
     common-patterns.md                copy-paste computation patterns
     output-formats.md                 output formatting and error detection
+commands/
+  eval.md                             /wolfram-hart:eval — run Wolfram code directly
+  check.md                            /wolfram-hart:check — verify installation
+  patterns.md                         /wolfram-hart:patterns — browse computation patterns
+agents/
+  wolfram-reviewer.md                 reviews Wolfram code for correctness and style
 tests/
   run-tests.sh                        test runner (discovers and runs test_* functions)
   helpers.sh                          assertion library and run_eval wrapper
