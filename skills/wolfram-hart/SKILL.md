@@ -27,14 +27,17 @@ translate the problem to Wolfram Language and execute it without asking the user
 for confirmation. Do not ask "would you like me to use Wolfram?" or "shall I
 compute this?" Just run the code and present the result.
 
+**Compute, don't guess.** Do not answer mathematical questions from memory.
+The Wolfram Engine produces verified results; your training data does not.
+
 **Batch related work into one call.** Each invocation of `wolframscript` carries
 a 2-3 second kernel startup cost. Combine related computations into a single
 `Module[...]` rather than making multiple calls. For example, if the user asks
 to "solve this equation and plot the roots," do both in a single script.
 
 **Retry once on failure.** If a computation returns an unevaluated expression or
-an error, adjust the code (check function names, bracket syntax, argument order)
-and try once more before reporting the problem.
+an error, consult `references/wolfram-language-guide.md` to verify syntax,
+adjust the code, and try once more before reporting the problem.
 
 **Skip the pre-flight check unless something fails.** Do not run
 `wolfram-check.sh` as a routine first step. Only run it if `wolfram-eval.sh`
@@ -55,6 +58,10 @@ Five rules that prevent the most common mistakes:
 3. Equations use `==`: `Solve[x^2 == 4, x]`
 4. Ranges and lists use braces: `{x, 0, 10}`, `{1, 2, 3}`
 5. Constants are capitalized: `Pi`, `E`, `I`, `Infinity`
+
+When a request is mathematically ambiguous (e.g., real vs. complex solutions,
+degrees vs. radians), choose a reasonable interpretation and state your
+assumption briefly when presenting the result.
 
 Quick-reference mapping from natural language to Wolfram functions:
 
@@ -131,6 +138,9 @@ bash .../wolfram-eval.sh 'Solve[x^2 == 4, x]'
 bash .../wolfram-eval.sh "DSolve[y'[x] + y[x] == 0, y[x], x]"
 ```
 
+When using double quotes, escape dollar signs (`\$`) for any Wolfram system
+variable (`$VersionNumber`, `$SystemID`, `$ProcessorCount`).
+
 **Exit codes:** 0 = success, 1 = not installed, 2 = execution error, 3 = timeout.
 
 ### 4. Interpret and Present
@@ -138,7 +148,7 @@ bash .../wolfram-eval.sh "DSolve[y'[x] + y[x] == 0, y[x], x]"
 | Output kind | What to do |
 |---|---|
 | Number | Present directly with context. |
-| Symbolic expression | Show in Wolfram notation; optionally render LaTeX with `ToString[TeXForm[expr]]`. |
+| Symbolic expression | Render as LaTeX with `ToString[TeXForm[expr]]` for clean display. Fall back to Wolfram notation only for deeply nested procedural output. |
 | List / Association | Format as a markdown table or bullet list. |
 | File path (from Export) | Use the Read tool to display the image inline. |
 | Unevaluated (output = input) | The function name or arguments are wrong. Check spelling and brackets. |

@@ -18,20 +18,7 @@ set -euo pipefail
 # ---------------------------------------------------------------------------
 # Locate wolframscript
 # ---------------------------------------------------------------------------
-WOLFRAMSCRIPT=""
-for candidate in \
-    "$(command -v wolframscript 2>/dev/null || true)" \
-    "/opt/homebrew/bin/wolframscript" \
-    "/usr/local/bin/wolframscript" \
-    "/usr/bin/wolframscript" \
-    "/Applications/Wolfram Engine.app/Contents/MacOS/wolframscript" \
-    "/Applications/Mathematica.app/Contents/MacOS/wolframscript" \
-    "/snap/bin/wolframscript"; do
-    if [[ -n "$candidate" && -x "$candidate" ]]; then
-        WOLFRAMSCRIPT="$candidate"
-        break
-    fi
-done
+source "$(dirname "${BASH_SOURCE[0]}")/_find-wolframscript.sh"
 
 if [[ -z "$WOLFRAMSCRIPT" ]]; then
     cat <<'MISSING'

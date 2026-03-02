@@ -161,6 +161,8 @@ tests/
   run-tests.sh                        test runner (discovers and runs test_* functions)
   helpers.sh                          assertion library and run_eval wrapper
   batch-01.sh .. batch-10.sh          100 tests across 10 domain batches
+Makefile                              build targets (test, lint, check)
+LICENSE                               MIT license
 ```
 
 ### Why a temp file?
@@ -177,7 +179,8 @@ Language available without any escaping workarounds.
 script wraps the call in `timeout` (or `gtimeout` on macOS) with a configurable
 limit. The default is 30 seconds; Claude passes longer timeouts automatically
 for heavy numerical work. If neither `timeout` nor `gtimeout` is available, the
-computation runs without a time limit.
+computation runs without a time limit. On macOS, `brew install coreutils`
+provides `gtimeout`.
 
 ### Structured output
 
