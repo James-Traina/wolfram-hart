@@ -1,0 +1,5 @@
+{
+  "name": "wolfram",
+  "description": "Wolfram Language computational engine integration for Claude Code via locally installed wolframscript",
+  "version": "1.0.0"
+}
