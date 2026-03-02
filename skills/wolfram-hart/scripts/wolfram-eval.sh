@@ -3,7 +3,7 @@
 # wolfram-eval.sh
 #
 # Executes Wolfram Language code through a locally installed wolframscript binary.
-# Designed to be called by Claude Code as the sole interface to the Wolfram Engine.
+# Designed to be called by Claude Code as the primary interface to the Wolfram Engine.
 #
 # The script writes incoming code to a temporary file before passing it to
 # wolframscript. This sidesteps every shell-quoting issue that would otherwise
@@ -84,6 +84,8 @@ if command -v gtimeout &>/dev/null; then
     TIMEOUT_CMD="gtimeout"
 elif command -v timeout &>/dev/null; then
     TIMEOUT_CMD="timeout"
+else
+    echo "WARNING: neither 'timeout' nor 'gtimeout' found; computation will run without a time limit." >&2
 fi
 
 # ---------------------------------------------------------------------------
@@ -91,7 +93,7 @@ fi
 # ---------------------------------------------------------------------------
 # -f       read code from file (avoids argument-length and quoting limits)
 # -print   required: tells wolframscript to print the final expression's
-#          result to stdout (without it, -f produces no output)
+#          value to stdout (without it, -f produces no final expression value)
 # ---------------------------------------------------------------------------
 RESULT=""
 EXIT_CODE=0
@@ -107,8 +109,8 @@ STDERR_CONTENT=$(cat "$STDERR_FILE" 2>/dev/null || true)
 # ---------------------------------------------------------------------------
 # Interpret exit status
 # ---------------------------------------------------------------------------
-# Exit code 124 = GNU timeout/gtimeout killed the process
-if [[ $EXIT_CODE -eq 124 ]]; then
+# Exit code 124 = GNU timeout sent SIGTERM; 137 = escalated to SIGKILL (128+9)
+if [[ $EXIT_CODE -eq 124 || $EXIT_CODE -eq 137 ]]; then
     printf '%s\n' "TIMEOUT: computation exceeded the ${TIMEOUT}s limit."
     printf '%s\n' "Increase the timeout or simplify the expression."
     exit 3
@@ -116,7 +118,9 @@ fi
 
 if [[ $EXIT_CODE -ne 0 && -z "$RESULT" ]]; then
     printf '%s\n' "ERROR: wolframscript exited with code $EXIT_CODE"
-    [[ -n "$STDERR_CONTENT" ]] && printf '%s\n' "STDERR: $STDERR_CONTENT"
+    if [[ -n "$STDERR_CONTENT" ]]; then
+        printf '%s\n' "STDERR: $STDERR_CONTENT"
+    fi
     exit 2
 fi
 
