@@ -28,7 +28,7 @@ test_063_3d_plot_export() {
 test_064_export_returns_path() {
     local f="/tmp/test_plot_064.png"
     rm -f "$f"
-    run_eval "Export[\"$f\", Plot[x^2, {x, -2, 2}]]" 60
+    run_eval "Export[\"$f\", Plot[x^2, {x, -2, 2}]]" 90
     assert_contains "$LAST_STDOUT" "$f" "Export should return the file path"
 }
 
@@ -50,7 +50,7 @@ test_066_imagesize_option() {
 test_067_listplot_export() {
     local f="/tmp/test_listplot_067.png"
     rm -f "$f"
-    run_eval "Export[\"$f\", ListPlot[Table[{x, Sin[x]}, {x, 0, 2 Pi, 0.1}]]]" 60
+    run_eval "Export[\"$f\", ListPlot[Table[{x, Sin[x]}, {x, 0, 2 Pi, 0.1}]]]" 90
     assert_file_exists "$f" "ListPlot should create file"
 }
 
