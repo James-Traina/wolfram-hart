@@ -72,7 +72,7 @@ Any expression that produces a graphics object (`Plot`, `Plot3D`, `ListPlot`,
 form.
 
 ```wolfram
-Export["/tmp/plot.png", Plot[Sin[x], {x, 0, 2 Pi}], ImageSize -> 500]
+Export["/tmp/plot.png", Plot[Sin[x], {x, 0, 2 Pi}, ImageSize -> 500]]
 ```
 
 ### Format Choice
