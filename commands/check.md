@@ -29,8 +29,10 @@ The output is divided into four sections: top-level info, `--- local ---`,
 - **local_licensed**: `YES` means the local Engine is installed and licensed.
   `POSSIBLY_NO` means the sanity check failed.
 - **local_test**: Appears when `local_licensed` is `YES`; confirms `2+2 = 4`.
-- **local_test_output** / **local_test_stderr**: Appear when `local_licensed`
-  is `POSSIBLY_NO`; show what wolframscript returned during the check.
+- **local_test_output**: Appears when `local_licensed` is `POSSIBLY_NO`;
+  shows what wolframscript printed to stdout during the check.
+- **local_test_stderr**: Also appears when `local_licensed` is `POSSIBLY_NO`,
+  but only when wolframscript wrote to stderr. May be absent if stderr was empty.
 - **local_hint**: Suggested action for the failure case (e.g., run
   `wolframscript` interactively to complete license activation).
 - **engine**: Engine version, platform, and core count. Only appears when
@@ -43,14 +45,19 @@ The output is divided into four sections: top-level info, `--- local ---`,
 - **cloud_test**: Appears when `cloud_available` is `YES`; confirms `2+2 = 4`.
 - **cloud_test_output** / **cloud_test_stderr**: Appear when `cloud_available`
   is `NO`; show the raw wolframscript output for diagnosis.
-- **cloud_hint**: Suggested action (e.g., run `wolframscript -authenticate`).
+- **cloud_hint**: Suggested action. When `cloud_available` is `NO`, this is
+  `run 'wolframscript -authenticate'`. When `cloud_available` is `TIMEOUT`,
+  this is a network connectivity message instead.
 
 **Setup section (`--- setup ---`)**
 
 - **recommended_mode**: The suggested `WOLFRAM_MODE` value given what's
-  working. If `NONE`, neither mode is functional.
+  working. When neither mode works, the value is
+  `NONE — neither mode is working`.
 - **recommended_action**: A concrete next step (e.g.,
-  `export WOLFRAM_MODE=cloud`). Only appears when cloud works but local does not.
+  `export WOLFRAM_MODE=cloud`). Only appears when cloud works but local does
+  not. When neither mode works, the script instead emits `To fix local:` and
+  `To fix cloud:` lines with step-by-step instructions; relay those directly.
 
 Summarize the status clearly: which modes are working, which aren't, and what
 the user should do next. Use the `recommended_action` field directly when
