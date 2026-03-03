@@ -160,8 +160,13 @@ esac
 # ---------------------------------------------------------------------------
 # Exit code 124 = GNU timeout sent SIGTERM; 137 = escalated to SIGKILL (128+9)
 if [[ -n "$TIMEOUT_CMD" && ($EXIT_CODE -eq 124 || $EXIT_CODE -eq 137) ]]; then
-    printf '%s\n' "TIMEOUT: computation exceeded the ${TIMEOUT}s limit."
-    printf '%s\n' "Increase the timeout or simplify the expression."
+    if [[ "$BOTH_FAILED" == "yes" ]]; then
+        printf '%s\n' "TIMEOUT: local evaluation failed, then cloud fallback timed out after ${TIMEOUT}s."
+        printf '%s\n' "Run /wolfram-hart:check to diagnose the local setup; increase timeout or check network for cloud."
+    else
+        printf '%s\n' "TIMEOUT: computation exceeded the ${TIMEOUT}s limit."
+        printf '%s\n' "Increase the timeout or simplify the expression."
+    fi
     exit 3
 fi
 

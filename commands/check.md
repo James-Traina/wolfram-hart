@@ -34,8 +34,10 @@ The output is divided into four sections: top-level info, `--- local ---`,
   shows what wolframscript printed to stdout during the check.
 - **local_test_stderr**: Also appears when `local_licensed` is `POSSIBLY_NO`,
   but only when wolframscript wrote to stderr. May be absent if stderr was empty.
-- **local_hint**: Fixed string emitted in the failure case:
-  `run 'wolframscript' interactively to complete activation`.
+- **local_hint**: Guidance string emitted when `local_licensed` is not `YES`.
+  When `POSSIBLY_NO`: `run 'wolframscript' interactively to complete activation`.
+  When `TIMEOUT`:
+  `local check timed out after 15s; the kernel may be slow to start — retry or increase timeout`.
 - **engine**: Engine version, platform, and core count. Only appears when
   `local_licensed` is `YES`. If `UNKNOWN`, there may be a license issue.
 
