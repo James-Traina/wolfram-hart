@@ -20,14 +20,15 @@ The output is divided into four sections: top-level info, `--- local ---`,
 - **status**: `FOUND` (binary located) or `NOT_FOUND`. If `NOT_FOUND`, present
   the setup options from the output and stop.
 - **path**: Where the `wolframscript` binary lives.
+- **mode_set**: The active `WOLFRAM_MODE` value (`auto`, `local`, or `cloud`).
 - **version**: Installed version. If `UNKNOWN`, the version check failed and
   the installation may be incomplete.
-- **mode_set**: The active `WOLFRAM_MODE` value (`auto`, `local`, or `cloud`).
 
 **Local section (`--- local ---`)**
 
 - **local_licensed**: `YES` means the local Engine is installed and licensed.
-  `POSSIBLY_NO` means the sanity check failed.
+  `POSSIBLY_NO` means the sanity check failed. `TIMEOUT` means the check
+  exceeded 15 s (the kernel may be slow to start — retry or increase timeout).
 - **local_test**: Appears when `local_licensed` is `YES`; confirms `2+2 = 4`.
 - **local_test_output**: Always present when `local_licensed` is `POSSIBLY_NO`;
   shows what wolframscript printed to stdout during the check.

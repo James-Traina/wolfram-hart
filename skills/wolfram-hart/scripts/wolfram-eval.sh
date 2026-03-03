@@ -143,9 +143,10 @@ case "$WOLFRAM_MODE" in
                 BOTH_FAILED="yes"
                 # Preserve diagnostics from both attempts for the NOT_CONFIGURED path.
                 STDERR_CONTENT="${LOCAL_STDERR}${STDERR_CONTENT:+; cloud: $STDERR_CONTENT}"
+            elif [[ $EXIT_CODE -eq 0 || -n "$RESULT" ]]; then
+                # Cloud succeeded as fallback — warn so user knows local is broken.
+                STDERR_CONTENT="NOTE: local evaluation failed; fell back to cloud. Run /wolfram-hart:check to diagnose.${STDERR_CONTENT:+; $STDERR_CONTENT}"
             fi
-            # On cloud success: proceed normally. Run /wolfram-hart:check to
-            # see which backends are configured and which WOLFRAM_MODE is set.
         fi
         ;;
     *)
@@ -158,7 +159,7 @@ esac
 # Interpret exit status
 # ---------------------------------------------------------------------------
 # Exit code 124 = GNU timeout sent SIGTERM; 137 = escalated to SIGKILL (128+9)
-if [[ $EXIT_CODE -eq 124 || $EXIT_CODE -eq 137 ]]; then
+if [[ -n "$TIMEOUT_CMD" && ($EXIT_CODE -eq 124 || $EXIT_CODE -eq 137) ]]; then
     printf '%s\n' "TIMEOUT: computation exceeded the ${TIMEOUT}s limit."
     printf '%s\n' "Increase the timeout or simplify the expression."
     exit 3

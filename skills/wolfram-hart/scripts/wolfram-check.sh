@@ -97,6 +97,9 @@ LOCAL_FIRST=$(printf '%s' "$LOCAL_RESULT" | head -1 | sed 's/^[[:space:]]*//;s/[
 if [[ "$LOCAL_FIRST" == "4" ]]; then
     echo "local_licensed: YES"
     echo "local_test: 2+2 = 4"
+elif [[ $LOCAL_EXIT -eq 124 || $LOCAL_EXIT -eq 137 ]]; then
+    echo "local_licensed: TIMEOUT"
+    echo "local_hint: local check timed out after 15s; the kernel may be slow to start — retry or increase timeout"
 else
     echo "local_licensed: POSSIBLY_NO"
     echo "local_test_output: $LOCAL_RESULT"
