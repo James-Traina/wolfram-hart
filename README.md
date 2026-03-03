@@ -205,6 +205,15 @@ depending on the wolframscript version. When stderr content is present, it
 appears after a `---WARNINGS---` marker so Claude can distinguish warnings
 from results.
 
+Sentinel prefixes in the output indicate specific failure modes:
+
+- `NOT_INSTALLED:` — wolframscript binary not found on the system.
+- `NOT_CONFIGURED:` — wolframscript found but neither local nor cloud works.
+- `TIMEOUT:` — computation exceeded the time limit.
+
+These sentinels appear at the start of stdout so tooling can match them
+reliably without parsing free-text error messages.
+
 ### Exit codes
 
 | Code | Meaning |
