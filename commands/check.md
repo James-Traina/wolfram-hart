@@ -1,9 +1,9 @@
 ---
-description: Verify Wolfram Engine installation and license
+description: Check Wolfram Engine setup (local and cloud) and show configuration status
 allowed-tools: Bash(bash:*)
 ---
 
-Run the Wolfram Engine installation check:
+Run the Wolfram setup check:
 
 ```bash
 bash ${CLAUDE_PLUGIN_ROOT}/skills/wolfram-hart/scripts/wolfram-check.sh
@@ -12,24 +12,46 @@ bash ${CLAUDE_PLUGIN_ROOT}/skills/wolfram-hart/scripts/wolfram-check.sh
 If the script itself fails to run (file not found, permission denied), report the
 error and suggest verifying the plugin installation.
 
-Interpret the key-value output and present a clear status summary:
+The output is divided into four sections: top-level info, `--- local ---`,
+`--- cloud ---`, and `--- setup ---`. Interpret them as follows:
 
-- **status**: Whether wolframscript was found.
-- **path**: Where the binary lives.
-- **version**: The installed version string. If the value is `UNKNOWN`, explain that
-  the version check failed and the installation may be incomplete.
-- **licensed**: Whether the license is active (`YES` is good; `POSSIBLY_NO` means
-  the user needs to run `wolframscript` interactively to complete activation).
-- **test**: The sanity check result (`2+2 = 4` confirms everything works). This field
-  only appears when the check succeeds.
-- **test_output** / **test_stderr**: If present (when licensed is `POSSIBLY_NO`),
-  display these so the user can see what wolframscript returned during the sanity check.
-- **hint**: Suggested user action (appears in the failure case).
-- **engine**: Version number, platform, and core count. If `UNKNOWN`, the engine
-  details could not be retrieved, which may indicate a license or installation issue.
+**Top-level fields**
 
-If the status is `NOT_FOUND`, present the installation instructions from the output
-and offer platform-specific guidance (Homebrew for macOS, .deb/.rpm for Linux).
+- **status**: `FOUND` (binary located) or `NOT_FOUND`. If `NOT_FOUND`, present
+  the setup options from the output and stop.
+- **path**: Where the `wolframscript` binary lives.
+- **version**: Installed version. If `UNKNOWN`, the version check failed and
+  the installation may be incomplete.
+- **mode_set**: The active `WOLFRAM_MODE` value (`auto`, `local`, or `cloud`).
 
-If licensed is `POSSIBLY_NO`, explain that the user should run `wolframscript` in
-their terminal once to complete the license activation flow.
+**Local section (`--- local ---`)**
+
+- **local_licensed**: `YES` means the local Engine is installed and licensed.
+  `POSSIBLY_NO` means the sanity check failed.
+- **local_test**: Appears when `local_licensed` is `YES`; confirms `2+2 = 4`.
+- **local_test_output** / **local_test_stderr**: Appear when `local_licensed`
+  is `POSSIBLY_NO`; show what wolframscript returned during the check.
+- **local_hint**: Suggested action for the failure case (e.g., run
+  `wolframscript` interactively to complete license activation).
+- **engine**: Engine version, platform, and core count. Only appears when
+  `local_licensed` is `YES`. If `UNKNOWN`, there may be a license issue.
+
+**Cloud section (`--- cloud ---`)**
+
+- **cloud_available**: `YES` (cloud evaluation works), `NO` (not configured or
+  auth failed), or `TIMEOUT` (no response within 30 s — likely a network issue).
+- **cloud_test**: Appears when `cloud_available` is `YES`; confirms `2+2 = 4`.
+- **cloud_test_output** / **cloud_test_stderr**: Appear when `cloud_available`
+  is `NO`; show the raw wolframscript output for diagnosis.
+- **cloud_hint**: Suggested action (e.g., run `wolframscript -authenticate`).
+
+**Setup section (`--- setup ---`)**
+
+- **recommended_mode**: The suggested `WOLFRAM_MODE` value given what's
+  working. If `NONE`, neither mode is functional.
+- **recommended_action**: A concrete next step (e.g.,
+  `export WOLFRAM_MODE=cloud`). Only appears when cloud works but local does not.
+
+Summarize the status clearly: which modes are working, which aren't, and what
+the user should do next. Use the `recommended_action` field directly when
+present — it is already formatted as a shell command.

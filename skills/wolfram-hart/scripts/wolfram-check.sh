@@ -41,10 +41,15 @@ MISSING
     exit 1
 fi
 
-WOLFRAM_MODE="${WOLFRAM_MODE:-auto}"
+readonly WOLFRAM_MODE="${WOLFRAM_MODE:-auto}"
 echo "status: FOUND"
 echo "path: $WOLFRAMSCRIPT"
 echo "mode_set: $WOLFRAM_MODE"
+
+# Temp files for stderr capture; cleaned up on any exit via trap.
+LOCAL_STDERR_FILE=""
+CLOUD_STDERR_FILE=""
+trap 'rm -f "$LOCAL_STDERR_FILE" "$CLOUD_STDERR_FILE"' EXIT
 
 # ---------------------------------------------------------------------------
 # Portable timeout wrapper
@@ -81,7 +86,7 @@ fi
 # ---------------------------------------------------------------------------
 echo ""
 echo "--- local ---"
-LOCAL_STDERR_FILE=$(mktemp "${TMPDIR:-/tmp}/wolfram_chk_local_XXXXXX.txt")
+LOCAL_STDERR_FILE="$(mktemp "${TMPDIR:-/tmp}/wolfram_chk_local_XXXXXX.txt")"
 LOCAL_EXIT=0
 LOCAL_RESULT=$(run_with_timeout 15 "$WOLFRAMSCRIPT" -code '2+2' 2>"$LOCAL_STDERR_FILE") || LOCAL_EXIT=$?
 LOCAL_STDERR=$(cat "$LOCAL_STDERR_FILE" 2>/dev/null || true)
@@ -119,7 +124,7 @@ fi
 # ---------------------------------------------------------------------------
 echo ""
 echo "--- cloud ---"
-CLOUD_STDERR_FILE=$(mktemp "${TMPDIR:-/tmp}/wolfram_chk_cloud_XXXXXX.txt")
+CLOUD_STDERR_FILE="$(mktemp "${TMPDIR:-/tmp}/wolfram_chk_cloud_XXXXXX.txt")"
 CLOUD_EXIT=0
 CLOUD_RESULT=$(run_with_timeout 30 "$WOLFRAMSCRIPT" -cloud -code '2+2' 2>"$CLOUD_STDERR_FILE") || CLOUD_EXIT=$?
 CLOUD_STDERR=$(cat "$CLOUD_STDERR_FILE" 2>/dev/null || true)
@@ -128,6 +133,9 @@ CLOUD_FIRST=$(printf '%s' "$CLOUD_RESULT" | head -1 | sed 's/^[[:space:]]*//;s/[
 if [[ "$CLOUD_FIRST" == "4" ]]; then
     echo "cloud_available: YES"
     echo "cloud_test: 2+2 = 4"
+elif [[ $CLOUD_EXIT -eq 124 || $CLOUD_EXIT -eq 137 ]]; then
+    echo "cloud_available: TIMEOUT"
+    echo "cloud_hint: cloud check timed out after 30s; check network connectivity and retry"
 else
     echo "cloud_available: NO"
     echo "cloud_test_output: $CLOUD_RESULT"
@@ -142,8 +150,8 @@ fi
 # ---------------------------------------------------------------------------
 echo ""
 echo "--- setup ---"
-LOCAL_OK="$( [[ "$LOCAL_FIRST" == "4" ]] && echo yes || echo no )"
-CLOUD_OK="$( [[ "$CLOUD_FIRST" == "4" ]] && echo yes || echo no )"
+if [[ "$LOCAL_FIRST" == "4" ]]; then LOCAL_OK="yes"; else LOCAL_OK="no"; fi
+if [[ "$CLOUD_FIRST" == "4" ]]; then CLOUD_OK="yes"; else CLOUD_OK="no"; fi
 
 if [[ "$LOCAL_OK" == "yes" && "$CLOUD_OK" == "yes" ]]; then
     echo "recommended_mode: auto (both local and cloud are available)"

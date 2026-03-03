@@ -3,7 +3,7 @@
 # wolfram-eval.sh
 #
 # Executes Wolfram Language code through a locally installed wolframscript
-# binary, in either local (default) or cloud mode.
+# binary, in local, cloud, or auto mode (default).
 #
 #   Local mode  — requires the Wolfram Engine installed and activated.
 #   Cloud mode  — requires only the wolframscript binary and a Wolfram account.
@@ -131,20 +131,26 @@ case "$WOLFRAM_MODE" in
     local)
         run_wolframscript "no"
         ;;
-    auto|*)
+    auto)
         run_wolframscript "no"
-        # If local produced nothing, try cloud transparently.
-        if [[ $EXIT_CODE -ne 0 && -z "$RESULT" ]]; then
+        # If local exited with an error and produced no output, try cloud.
+        # Skip the fallback for timeouts (124 = SIGTERM, 137 = SIGKILL) —
+        # those should surface as timeouts, not silently retry in the cloud.
+        if [[ $EXIT_CODE -ne 0 && $EXIT_CODE -ne 124 && $EXIT_CODE -ne 137 && -z "$RESULT" ]]; then
             LOCAL_STDERR="$STDERR_CONTENT"
             run_wolframscript "yes"
             if [[ $EXIT_CODE -ne 0 && -z "$RESULT" ]]; then
                 BOTH_FAILED="yes"
-                # Preserve local stderr for diagnostics; prefix cloud stderr.
+                # Preserve diagnostics from both attempts for the NOT_CONFIGURED path.
                 STDERR_CONTENT="${LOCAL_STDERR}${STDERR_CONTENT:+; cloud: $STDERR_CONTENT}"
             fi
-            # On cloud success: proceed normally (cloud mode note omitted to
-            # keep output clean; /wolfram-hart:check shows the mode status).
+            # On cloud success: proceed normally. Run /wolfram-hart:check to
+            # see which backends are configured and which WOLFRAM_MODE is set.
         fi
+        ;;
+    *)
+        printf '%s\n' "ERROR: unknown WOLFRAM_MODE '${WOLFRAM_MODE}' (expected: auto, local, or cloud)" >&2
+        exit 1
         ;;
 esac
 
@@ -172,6 +178,10 @@ To set up cloud evaluation instead:
 
 Run /wolfram-hart:check to see the detailed status of each mode.
 NOT_CONFIGURED
+        if [[ -n "$STDERR_CONTENT" ]]; then
+            printf '%s\n' "---DIAGNOSTICS---"
+            printf '%s\n' "$STDERR_CONTENT"
+        fi
     else
         printf '%s\n' "ERROR: wolframscript exited with code $EXIT_CODE"
         if [[ -n "$STDERR_CONTENT" ]]; then

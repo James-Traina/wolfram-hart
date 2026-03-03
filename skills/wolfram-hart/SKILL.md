@@ -130,7 +130,9 @@ bash ${CLAUDE_PLUGIN_ROOT}/skills/wolfram-hart/scripts/wolfram-eval.sh '<code>' 
 variable: `auto` (default, tries local then cloud), `local`, or `cloud`.
 You do not need to set it — auto mode works transparently. When the user has
 set `WOLFRAM_MODE=cloud`, the `-cloud` flag is added to the wolframscript
-invocation and no local Engine is required.
+invocation and no local Engine is required. If the local kernel is present
+but unlicensed, auto mode incurs the full local timeout before falling back;
+in that case, `WOLFRAM_MODE=cloud` avoids the extra wait.
 
 **Quoting.** Use single quotes around the code argument. When the code contains
 derivative apostrophes (`y'[x]`), switch to double quotes and escape the inner
