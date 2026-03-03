@@ -29,12 +29,12 @@ The output is divided into four sections: top-level info, `--- local ---`,
 - **local_licensed**: `YES` means the local Engine is installed and licensed.
   `POSSIBLY_NO` means the sanity check failed.
 - **local_test**: Appears when `local_licensed` is `YES`; confirms `2+2 = 4`.
-- **local_test_output**: Appears when `local_licensed` is `POSSIBLY_NO`;
+- **local_test_output**: Always present when `local_licensed` is `POSSIBLY_NO`;
   shows what wolframscript printed to stdout during the check.
 - **local_test_stderr**: Also appears when `local_licensed` is `POSSIBLY_NO`,
   but only when wolframscript wrote to stderr. May be absent if stderr was empty.
-- **local_hint**: Suggested action for the failure case (e.g., run
-  `wolframscript` interactively to complete license activation).
+- **local_hint**: Fixed string emitted in the failure case:
+  `run 'wolframscript' interactively to complete activation`.
 - **engine**: Engine version, platform, and core count. Only appears when
   `local_licensed` is `YES`. If `UNKNOWN`, there may be a license issue.
 
@@ -43,22 +43,29 @@ The output is divided into four sections: top-level info, `--- local ---`,
 - **cloud_available**: `YES` (cloud evaluation works), `NO` (not configured or
   auth failed), or `TIMEOUT` (no response within 30 s — likely a network issue).
 - **cloud_test**: Appears when `cloud_available` is `YES`; confirms `2+2 = 4`.
-- **cloud_test_output** / **cloud_test_stderr**: Appear when `cloud_available`
-  is `NO`; show the raw wolframscript output for diagnosis.
-- **cloud_hint**: Suggested action. When `cloud_available` is `NO`, this is
-  `run 'wolframscript -authenticate'`. When `cloud_available` is `TIMEOUT`,
-  this is a network connectivity message instead.
+- **cloud_test_output**: Appears when `cloud_available` is `NO`; shows what
+  wolframscript printed to stdout during the check.
+- **cloud_test_stderr**: Also appears when `cloud_available` is `NO`, but only
+  when wolframscript wrote to stderr. May be absent if stderr was empty.
+- **cloud_hint**: Fixed string per outcome. When `cloud_available` is `NO`:
+  `run 'wolframscript -authenticate' to set up cloud access`. When
+  `cloud_available` is `TIMEOUT`:
+  `cloud check timed out after 30s; check network connectivity and retry`.
 
 **Setup section (`--- setup ---`)**
 
 - **recommended_mode**: The suggested `WOLFRAM_MODE` value given what's
-  working. When neither mode works, the value is
-  `NONE — neither mode is working`.
-- **recommended_action**: A concrete next step (e.g.,
-  `export WOLFRAM_MODE=cloud`). Only appears when cloud works but local does
-  not. When neither mode works, the script instead emits `To fix local:` and
-  `To fix cloud:` lines with step-by-step instructions; relay those directly.
+  working. Possible values:
+  - `auto (both local and cloud are available)`
+  - `local (Engine licensed; cloud not configured)`
+  - `cloud`
+  - `NONE — neither mode is working`
+- **recommended_action**: A user-facing instruction (e.g.,
+  `add 'export WOLFRAM_MODE=cloud' to ~/.zshrc or ~/.bashrc`). Only appears
+  when cloud works but local does not. When neither mode works, the script
+  instead emits `To fix local:` and `To fix cloud:` lines with step-by-step
+  instructions; relay those directly.
 
 Summarize the status clearly: which modes are working, which aren't, and what
 the user should do next. Use the `recommended_action` field directly when
-present — it is already formatted as a shell command.
+present — it is already a user-facing instruction.
