@@ -1,19 +1,6 @@
 ---
-name: Wolfram Engine
-description: >-
-  Wolfram Engine for verified mathematical computation. Use this skill whenever
-  the user asks you to compute, solve, integrate, differentiate, factor, invert
-  a matrix, find eigenvalues, transform (Fourier/Laplace/Z), optimize, fit data,
-  or work with number theory — even if you could answer from memory. Recalled
-  math can silently contain errors; the Wolfram Engine computes and verifies
-  (e.g. a 4×4 matrix where recalled det=6 but true det=12). Make sure to invoke
-  this skill for: matrix operations of any size, exact symbolic integrals, ODE
-  and recurrence solving, polynomial factoring, data regression with exact
-  coefficients, modular arithmetic, constrained optimization, and any mention of
-  Wolfram/Mathematica/Wolfram Language. Also use it when the user asks for an
-  exact or verified result rather than an approximation. The only exception is
-  truly trivial one-step problems (e.g. "solve x²=4") where the overhead is
-  not warranted — for anything involving multi-step arithmetic, use this skill.
+name: wolfram-hart
+description: "Wolfram Engine for verified mathematical computation. Use this skill whenever the user asks you to compute, solve, integrate, differentiate, factor, invert a matrix, find eigenvalues, transform (Fourier/Laplace/Z), optimize, fit data, or work with number theory — even if you could answer from memory. Recalled math can silently contain errors; the Wolfram Engine computes and verifies (e.g. a 4×4 matrix where recalled det=6 but true det=12). Make sure to invoke this skill for: matrix operations of any size, exact symbolic integrals, ODE and recurrence solving, polynomial factoring, data regression with exact coefficients, modular arithmetic, constrained optimization, and any mention of Wolfram/Mathematica/Wolfram Language. Also use it when the user asks for an exact or verified result rather than an approximation. The only exception is truly trivial one-step problems (e.g. \"solve x²=4\") where the overhead is not warranted — for anything involving multi-step arithmetic, use this skill."
 ---
 
 # Wolfram Engine
