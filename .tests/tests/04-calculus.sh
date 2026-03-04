@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Batch 4: Calculus (tests 031-040)
-# Sourced by run-tests.sh. Defines test_* functions; do not execute directly.
+# Calculus — derivatives, integrals, limits, series
+# Sourced by run-all.sh. Defines test_* functions; do not execute directly.
 
 test_031_derivative() {
     run_eval 'D[x^3, x]'

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Batch 2: Arithmetic & Constants (tests 011-020)
-# Sourced by run-tests.sh. Defines test_* functions; do not execute directly.
+# Arithmetic & constants — numeric precision, trig, primes
+# Sourced by run-all.sh. Defines test_* functions; do not execute directly.
 
 test_011_pi_precision() {
     run_eval 'N[Pi, 15]'

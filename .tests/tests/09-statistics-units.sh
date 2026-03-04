@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Batch 9: Statistics, Probability & Units (tests 081-090)
-# Sourced by run-tests.sh. Defines test_* functions; do not execute directly.
+# Statistics, probability & units — mean, PDF, CDF, UnitConvert
+# Sourced by run-all.sh. Defines test_* functions; do not execute directly.
 
 test_081_mean() {
     run_eval 'Mean[{1,2,3,4,5}]'

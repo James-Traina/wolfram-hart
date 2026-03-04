@@ -2,7 +2,7 @@
 #
 # helpers.sh — assertion library and run_eval wrapper for wolfram-hart tests
 #
-# This file is SOURCED by run-tests.sh, not executed directly.
+# This file is SOURCED by run-all.sh, not executed directly.
 #
 # Globals set by run_eval:
 #   LAST_STDOUT   captured stdout from wolfram-eval.sh
@@ -20,8 +20,8 @@
 #
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-EVAL_SCRIPT="$SCRIPT_DIR/../skills/wolfram-hart/scripts/wolfram-eval.sh"
-CHECK_SCRIPT="$SCRIPT_DIR/../skills/wolfram-hart/scripts/wolfram-check.sh"
+EVAL_SCRIPT="$SCRIPT_DIR/../../skills/wolfram-hart/scripts/wolfram-eval.sh"
+CHECK_SCRIPT="$SCRIPT_DIR/../../skills/wolfram-hart/scripts/wolfram-check.sh"
 
 if [[ ! -f "$EVAL_SCRIPT" ]]; then
     echo "FATAL: wolfram-eval.sh not found at $EVAL_SCRIPT" >&2

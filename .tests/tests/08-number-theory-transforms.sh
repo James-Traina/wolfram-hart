@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Batch 8: Number Theory & Transforms (tests 071-080)
-# Sourced by run-tests.sh. Defines test_* functions; do not execute directly.
+# Number theory & transforms — primes, GCD, Fourier, Laplace
+# Sourced by run-all.sh. Defines test_* functions; do not execute directly.
 
 test_071_factor_integer() {
     run_eval 'FactorInteger[360]'

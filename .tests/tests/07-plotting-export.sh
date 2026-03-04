@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Batch 7: Plotting & File Export (tests 061-070)
-# Sourced by run-tests.sh. Defines test_* functions; do not execute directly.
+# Plotting & export — 2D, 3D, ListPlot, Histogram, ContourPlot
+# Sourced by run-all.sh. Defines test_* functions; do not execute directly.
 
 test_061_basic_plot_export() {
     local f="/tmp/test_plot_061.png"

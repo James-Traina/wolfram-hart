@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Batch 3: Algebra & Solving (tests 021-030)
-# Sourced by run-tests.sh. Defines test_* functions; do not execute directly.
+# Algebra & solving — Solve, Factor, Expand, Simplify, NSolve
+# Sourced by run-all.sh. Defines test_* functions; do not execute directly.
 
 test_021_quadratic() {
     run_eval 'Solve[x^2 - 4 == 0, x]'

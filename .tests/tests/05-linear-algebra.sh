@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Batch 5: Linear Algebra (tests 041-050)
-# Sourced by run-tests.sh. Defines test_* functions; do not execute directly.
+# Linear algebra — determinants, eigenvalues, inverse, solve
+# Sourced by run-all.sh. Defines test_* functions; do not execute directly.
 
 test_041_determinant_2x2() {
     run_eval 'Det[{{1,2},{3,4}}]'

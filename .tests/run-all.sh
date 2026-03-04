@@ -1,32 +1,29 @@
 #!/usr/bin/env bash
 #
-# run-tests.sh — minimal test runner for wolfram-hart
+# run-all.sh — wolfram-hart test suite
 #
 # Usage:
-#   bash tests/run-tests.sh                    # run all batches
-#   bash tests/run-tests.sh tests/batch-01.sh  # run one batch
-#   bash tests/run-tests.sh tests/batch-01.sh tests/batch-02.sh  # run specific batches
+#   bash .tests/run-all.sh                                    # run all tests
+#   bash .tests/run-all.sh .tests/tests/04-calculus.sh        # run one file
+#   bash .tests/run-all.sh .tests/tests/04*.sh .tests/tests/05*.sh
 #
 
 set -uo pipefail  # -e deliberately omitted: test functions return non-zero on failure
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# Source helpers — abort immediately if this fails
-source "$SCRIPT_DIR/helpers.sh" || { echo "FATAL: cannot load helpers.sh"; exit 1; }
+source "$SCRIPT_DIR/lib/helpers.sh" || { echo "FATAL: cannot load helpers.sh"; exit 1; }
 
-# Counters
 PASS_COUNT=0
 FAIL_COUNT=0
 SKIP_COUNT=0
 TOTAL_COUNT=0
 FAILED_TESTS=()
 
-# Determine which batch files to run
 if [[ $# -gt 0 ]]; then
     BATCH_FILES=("$@")
 else
-    BATCH_FILES=("$SCRIPT_DIR"/batch-*.sh)
+    BATCH_FILES=("$SCRIPT_DIR"/tests/*.sh)
 fi
 
 echo "========================================"
@@ -36,24 +33,21 @@ echo ""
 
 for batch_file in "${BATCH_FILES[@]}"; do
     if [[ ! -f "$batch_file" ]]; then
-        echo "WARNING: batch file not found: $batch_file"
+        echo "WARNING: file not found: $batch_file"
         continue
     fi
 
     batch_name=$(basename "$batch_file" .sh)
     echo "--- $batch_name ---"
 
-    # Snapshot current test_ functions before sourcing the batch
     _pre_funcs=$(declare -F | awk '{print $3}' | grep '^test_' | sort || true)
 
-    # Source the batch file to define test functions
     if ! source "$batch_file"; then
         echo "  ERROR: failed to source $batch_file"
         echo ""
         continue
     fi
 
-    # Discover only the NEW test_ functions added by this batch
     _post_funcs=$(declare -F | awk '{print $3}' | grep '^test_' | sort || true)
     test_funcs=($(comm -13 <(echo "$_pre_funcs") <(echo "$_post_funcs")))
 

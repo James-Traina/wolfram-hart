@@ -166,51 +166,63 @@ Language mistakes: wrong capitalization, parentheses instead of square
 brackets, missing `Export` on graphics, semicolon issues. Claude may invoke
 it when a computation fails, or you can ask for a review manually.
 
-## How it works
+## Structure
 
 ```
-.claude-plugin/
-  plugin.json                         plugin manifest
-  marketplace.json                    marketplace catalog
-skills/wolfram-hart/
-  SKILL.md                            instructions Claude follows
-  scripts/
-    wolfram-eval.sh                   runs Wolfram code (local or cloud)
-    wolfram-check.sh                  reports setup status
-    _find-wolframscript.sh            binary discovery (sourced internally)
-  references/
-    wolfram-language-guide.md         function reference by domain
-    common-patterns.md                15 copy-paste computation patterns
-    output-formats.md                 output formatting and error detection
-commands/
-  eval.md                             /wolfram-hart:eval
-  check.md                            /wolfram-hart:check
-  patterns.md                         /wolfram-hart:patterns
-agents/
-  wolfram-reviewer.md                 Wolfram code reviewer
-tests/
-  run-tests.sh                        test runner
-  helpers.sh                          assertion library
-  batch-01.sh .. batch-10.sh          102 tests across 10 domain batches
+wolfram-hart/
+├── .claude-plugin/
+│   ├── plugin.json                 plugin manifest
+│   └── marketplace.json            marketplace catalog
+├── skills/wolfram-hart/
+│   ├── SKILL.md                    skill definition — triggers and workflow
+│   ├── scripts/
+│   │   ├── wolfram-eval.sh         runs Wolfram code (local or cloud)
+│   │   ├── wolfram-check.sh        reports setup status
+│   │   └── _find-wolframscript.sh  binary discovery (sourced internally)
+│   └── references/
+│       ├── wolfram-language-guide.md   function reference by domain
+│       ├── common-patterns.md          15 copy-paste computation patterns
+│       └── output-formats.md          output formatting and error detection
+├── commands/
+│   ├── eval.md                     /wolfram-hart:eval
+│   ├── check.md                    /wolfram-hart:check
+│   └── patterns.md                 /wolfram-hart:patterns
+└── agents/
+    └── wolfram-reviewer.md         catches common Wolfram Language mistakes
 ```
+
+### Extension options
+
+**Skill** (`skills/wolfram-hart/SKILL.md`) — auto-invoked when Claude detects
+a math or science question. Translates natural language to Wolfram Language,
+runs it through `wolfram-eval.sh`, and presents results as text, LaTeX, or
+inline images.
+
+**Commands** (`commands/`) — three slash commands for direct access: `:eval`
+to run raw Wolfram code, `:check` to verify setup, `:patterns` to browse the
+built-in computation patterns.
+
+**Agent** (`agents/wolfram-reviewer.md`) — invoked when a computation fails;
+reviews the generated Wolfram code for syntax errors, capitalization mistakes,
+and missing `Export` calls on graphics.
 
 ## Testing
 
-The test suite validates 102 behaviors across 10 domain batches.
+102 tests across 10 files covering script mechanics, arithmetic, algebra,
+calculus, linear algebra, output formatting, plotting, number theory,
+statistics, and edge cases.
 
 ```bash
-bash tests/run-tests.sh tests/batch-*.sh    # all tests
-bash tests/run-tests.sh tests/batch-01.sh   # single batch
+bash .tests/run-all.sh                           # all tests
+bash .tests/run-all.sh .tests/tests/04-calculus.sh   # one file
 ```
 
-Batches cover: script mechanics, arithmetic, algebra, calculus, linear algebra,
-output formatting, plotting, number theory, statistics, and edge cases. Most
-batches need a working `wolframscript` installation; the exit-code tests in
-batch-10 use stubs and run without one.
+Most tests need a working `wolframscript` installation. The exit-code tests in
+`10-edge-cases-errors.sh` use stubs and run without one.
 
 ## Development
 
-Load the plugin from a local clone (useful when modifying the plugin itself):
+Load the plugin from a local clone:
 
 ```bash
 claude --plugin-dir /path/to/wolfram-hart

@@ -1,0 +1,78 @@
+{
+  "plugin": "wolfram-hart",
+  "total_score": 50,
+  "max_score": 50,
+  "perfect_dimensions": 10,
+  "dimensions": [
+    {
+      "dimension": "Autonomous",
+      "score": 5,
+      "max": 5,
+      "perfect": true,
+      "findings": []
+    },
+    {
+      "dimension": "Minimal",
+      "score": 5,
+      "max": 5,
+      "perfect": true,
+      "findings": []
+    },
+    {
+      "dimension": "Modular",
+      "score": 5,
+      "max": 5,
+      "perfect": true,
+      "findings": []
+    },
+    {
+      "dimension": "Robust",
+      "score": 5,
+      "max": 5,
+      "perfect": true,
+      "findings": []
+    },
+    {
+      "dimension": "Genuine",
+      "score": 5,
+      "max": 5,
+      "perfect": true,
+      "findings": []
+    },
+    {
+      "dimension": "Precise",
+      "score": 5,
+      "max": 5,
+      "perfect": true,
+      "findings": []
+    },
+    {
+      "dimension": "Rigorous",
+      "score": 5,
+      "max": 5,
+      "perfect": true,
+      "findings": []
+    },
+    {
+      "dimension": "Actionable",
+      "score": 5,
+      "max": 5,
+      "perfect": true,
+      "findings": []
+    },
+    {
+      "dimension": "Specialized",
+      "score": 5,
+      "max": 5,
+      "perfect": true,
+      "findings": []
+    },
+    {
+      "dimension": "Literate",
+      "score": 5,
+      "max": 5,
+      "perfect": true,
+      "findings": []
+    }
+  ]
+}
