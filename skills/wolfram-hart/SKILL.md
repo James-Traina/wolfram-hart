@@ -39,7 +39,7 @@ a 2-3 second kernel startup cost. Combine related computations into a single
 to "solve this equation and plot the roots," do both in a single script.
 
 **Retry once on failure.** If a computation returns an unevaluated expression or
-an error, consult `references/wolfram-language-guide.md` to verify syntax,
+an error, consult `${CLAUDE_PLUGIN_ROOT}/skills/wolfram-hart/references/wolfram-language-guide.md` to verify syntax,
 adjust the code, and try once more before reporting the problem.
 
 **Skip the pre-flight check unless something fails.** Do not run
