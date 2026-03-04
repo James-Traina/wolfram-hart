@@ -8,6 +8,17 @@ PNGs and displayed inline. No special syntax needed.
 Covers symbolic algebra, calculus, linear algebra, statistics, plotting, and
 much more. If the Wolfram Language can do it, this plugin makes it available.
 
+## Installing from GitHub
+
+```
+/plugin marketplace add James-Traina/wolfram-hart
+/plugin install wolfram-hart@James-Traina-wolfram-hart
+```
+
+Then restart Claude Code. That's it — the plugin is active.
+
+---
+
 ## Prerequisites
 
 > **Windows is not supported natively.** The plugin's scripts are bash-only.
@@ -89,16 +100,16 @@ wolframscript -cloud -code '2+2'     # cloud mode
 
 Both should output `4`.
 
-## Installing the plugin
+## Local / development install
 
-Tell Claude Code where the plugin lives:
+To load the plugin from a local clone:
 
 ```bash
 claude --plugin-dir /path/to/wolfram-hart
 ```
 
-For permanent installation, add the path to your Claude Code settings file
-(`~/.claude/settings.json` under the `plugins` key).
+For a permanent local install, add the path to `~/.claude/settings.json` under
+the `plugins` key.
 
 ## Usage
 
