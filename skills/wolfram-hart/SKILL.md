@@ -103,6 +103,13 @@ then use the Read tool to show the image to the user.
 
 ### 3. Execute
 
+Before calling the script, output a single status line so the user knows
+computation is starting (the kernel takes 2-3 seconds to start):
+
+```
+_Running Wolfram Engine…_
+```
+
 Run all code through the wrapper script:
 
 ```bash
