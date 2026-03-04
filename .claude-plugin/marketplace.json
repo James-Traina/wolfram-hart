@@ -6,7 +6,7 @@
   "plugins": [
     {
       "name": "wolfram-hart",
-      "source": ".",
+      "source": "./.claude-plugin",
       "description": "Gives Claude a real math engine. Ask a math or science question and Claude translates it to Wolfram Language, runs it through wolframscript, and hands back the exact answer — symbolic algebra, calculus, plotting, statistics, and more. No special syntax needed.",
       "version": "1.0.0",
       "author": {
