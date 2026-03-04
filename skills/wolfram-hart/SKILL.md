@@ -1,16 +1,19 @@
 ---
 name: Wolfram Engine
 description: >-
-  This skill should be used when the user asks to "compute", "calculate",
-  "solve", "integrate", "differentiate", "plot", "graph", "factor", "simplify",
-  "find eigenvalues", "find the determinant", "matrix inverse", "do statistics",
-  "run Wolfram code", "use Wolfram", "use Mathematica", "Fourier transform",
-  "Laplace transform", "optimize", "minimize", "maximize", "curve fitting",
-  mentions Wolfram Language, asks for symbolic computation, differential equations,
-  linear algebra, number theory, probability distributions, numerical analysis,
-  data fitting, unit conversions, or any computation requiring a computer algebra
-  system. Also triggers for "export a plot", "graph this function", "LaTeX for
-  this expression", or requests for exact (non-approximate) mathematical answers.
+  Wolfram Engine for verified mathematical computation. Use this skill whenever
+  the user asks you to compute, solve, integrate, differentiate, factor, invert
+  a matrix, find eigenvalues, transform (Fourier/Laplace/Z), optimize, fit data,
+  or work with number theory — even if you could answer from memory. Recalled
+  math can silently contain errors; the Wolfram Engine computes and verifies
+  (e.g. a 4×4 matrix where recalled det=6 but true det=12). Make sure to invoke
+  this skill for: matrix operations of any size, exact symbolic integrals, ODE
+  and recurrence solving, polynomial factoring, data regression with exact
+  coefficients, modular arithmetic, constrained optimization, and any mention of
+  Wolfram/Mathematica/Wolfram Language. Also use it when the user asks for an
+  exact or verified result rather than an approximation. The only exception is
+  truly trivial one-step problems (e.g. "solve x²=4") where the overhead is
+  not warranted — for anything involving multi-step arithmetic, use this skill.
 ---
 
 # Wolfram Engine
@@ -49,7 +52,7 @@ so the user gets actionable setup instructions.
 ### 1. Translate
 
 Convert the user's request to Wolfram Language. Consult
-`references/wolfram-language-guide.md` when unsure about syntax.
+`${CLAUDE_PLUGIN_ROOT}/skills/wolfram-hart/references/wolfram-language-guide.md` when unsure about syntax.
 
 Five rules that prevent the most common mistakes:
 
@@ -213,9 +216,9 @@ than local. For repeated work, consider the local Engine option.
 
 Detailed syntax and cookbook patterns, loaded on demand:
 
-- **`references/wolfram-language-guide.md`** -- Complete function reference by domain: algebra, calculus, linear algebra, statistics, plotting, data, strings, and programming constructs.
-- **`references/common-patterns.md`** -- 15 copy-paste-ready patterns with exact bash invocations covering the most frequent computation types.
-- **`references/output-formats.md`** -- How the Wolfram Engine formats different expression types, how to control the format, and how to detect errors in output.
+- **`${CLAUDE_PLUGIN_ROOT}/skills/wolfram-hart/references/wolfram-language-guide.md`** -- Complete function reference by domain: algebra, calculus, linear algebra, statistics, plotting, data, strings, and programming constructs.
+- **`${CLAUDE_PLUGIN_ROOT}/skills/wolfram-hart/references/common-patterns.md`** -- 15 copy-paste-ready patterns with exact bash invocations covering the most frequent computation types.
+- **`${CLAUDE_PLUGIN_ROOT}/skills/wolfram-hart/references/output-formats.md`** -- How the Wolfram Engine formats different expression types, how to control the format, and how to detect errors in output.
 
 ## Scripts
 

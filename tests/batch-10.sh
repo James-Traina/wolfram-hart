@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Batch 10: Edge Cases & Error Handling (tests 091-100)
+# Batch 10: Edge Cases & Error Handling (tests 091-102)
 # Sourced by run-tests.sh. Defines test_* functions; do not execute directly.
 
 test_091_unevaluated_misspelling() {
@@ -63,4 +63,39 @@ test_100_semicolons_suppress() {
     local first_line
     first_line=$(echo "$LAST_STDOUT" | head -1)
     assert_eq "$first_line" "6" "semicolons should suppress intermediate output"
+}
+
+test_101_exit_code_1_no_wolframscript() {
+    # Simulate a system where wolframscript is not installed by replacing the
+    # discovery helper (_find-wolframscript.sh) with a stub that sets WOLFRAMSCRIPT="".
+    # We copy wolfram-eval.sh to a temp dir so dirname "${BASH_SOURCE[0]}" resolves
+    # there and sources our stub instead of the real discovery script.
+    local stub_dir exit_code=0 out
+    stub_dir=$(mktemp -d "${TMPDIR:-/tmp}/wolfram_no_ws_XXXXXX")
+    printf '#!/usr/bin/env bash\nWOLFRAMSCRIPT=""\n' > "$stub_dir/_find-wolframscript.sh"
+    cp "$EVAL_SCRIPT" "$stub_dir/wolfram-eval.sh"
+    out=$(bash "$stub_dir/wolfram-eval.sh" '2+2' 2>/dev/null) || exit_code=$?
+    LAST_EXIT=$exit_code
+    LAST_STDOUT="$out"
+    rm -rf "$stub_dir"
+    assert_eq "$LAST_EXIT" "1" "missing wolframscript should exit 1"
+    assert_contains "$LAST_STDOUT" "NOT_INSTALLED" "exit 1 output should contain NOT_INSTALLED"
+}
+
+test_102_exit_code_2_execution_error() {
+    # Simulate wolframscript found but crashing with no output (execution error).
+    # A stub wolframscript exits 1 with no output; WOLFRAM_MODE=local prevents
+    # auto-mode from retrying in the cloud and masking the error.
+    local stub_dir exit_code=0 out
+    stub_dir=$(mktemp -d "${TMPDIR:-/tmp}/wolfram_err_ws_XXXXXX")
+    printf 'WOLFRAMSCRIPT="%s/wolframscript"\n' "$stub_dir" > "$stub_dir/_find-wolframscript.sh"
+    printf '#!/usr/bin/env bash\nexit 1\n' > "$stub_dir/wolframscript"
+    chmod +x "$stub_dir/wolframscript"
+    cp "$EVAL_SCRIPT" "$stub_dir/wolfram-eval.sh"
+    out=$(WOLFRAM_MODE=local bash "$stub_dir/wolfram-eval.sh" '2+2' 2>/dev/null) || exit_code=$?
+    LAST_EXIT=$exit_code
+    LAST_STDOUT="$out"
+    rm -rf "$stub_dir"
+    assert_eq "$LAST_EXIT" "2" "execution error with no output should exit 2"
+    assert_contains "$LAST_STDOUT" "ERROR" "exit 2 output should contain ERROR"
 }

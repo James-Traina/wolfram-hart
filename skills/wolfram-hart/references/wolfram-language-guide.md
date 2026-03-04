@@ -69,11 +69,15 @@ FindRoot[Cos[x] == x, {x, 1}]            single numerical root near guess
 Reduce[x^2 + y^2 < 1 && x > 0, {x, y}]  reduce inequalities
 Simplify[expr]                            simplify
 FullSimplify[expr]                        more aggressive simplification
+Simplify[expr, Assumptions -> x > 0]     simplify with assumption
+FullSimplify[Sqrt[x^2], Assumptions -> x > 0]  gives x (not Abs[x])
 Factor[x^2 - 5x + 6]                     factor polynomial
 Expand[(x+1)^5]                           expand
 Apart[1/(x^2 - 1)]                        partial fractions
 Together[1/x + 1/y]                       common denominator
 ```
+
+**Note on Assumptions:** Without assumptions, `Simplify[Sqrt[x^2]]` returns `Abs[x]` (correct for all reals). Add `Assumptions -> x > 0` to get `x`. This matters for integrals and inequalities involving square roots or absolute values.
 
 ### Calculus
 
