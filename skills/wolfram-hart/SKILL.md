@@ -72,7 +72,7 @@ Quick-reference mapping from natural language to Wolfram functions:
 | eigenvalues | `Eigenvalues` | `Eigenvalues[{{1,2},{3,4}}]` |
 | ODE / diff eq | `DSolve` | `DSolve[y'[x] == -y[x], y[x], x]` |
 | prime factors | `FactorInteger` | `FactorInteger[360]` |
-| regression / fit | `LinearModelFit` | see `references/common-patterns.md` |
+| regression / fit | `LinearModelFit` | see `${CLAUDE_PLUGIN_ROOT}/skills/wolfram-hart/references/common-patterns.md` |
 | convert units | `UnitConvert` | `UnitConvert[Quantity[100,"Miles"],"Kilometers"]` |
 | Fourier transform | `FourierTransform` | `FourierTransform[Exp[-x^2], x, w]` |
 | optimize / minimize | `NMinimize` / `Minimize` | `NMinimize[x^4 - 3x^2 + x, x]` |
@@ -209,5 +209,5 @@ Detailed syntax and cookbook patterns, loaded on demand:
 
 ## Scripts
 
-- **`scripts/wolfram-eval.sh`** -- The only interface to the engine. Always use this; never call `wolframscript` directly.
-- **`scripts/wolfram-check.sh`** -- Checks both local and cloud mode status. Run when `wolfram-eval.sh` exits with code 1 or produces `NOT_CONFIGURED` output.
+- **`${CLAUDE_PLUGIN_ROOT}/skills/wolfram-hart/scripts/wolfram-eval.sh`** -- The only interface to the engine. Always use this; never call `wolframscript` directly.
+- **`${CLAUDE_PLUGIN_ROOT}/skills/wolfram-hart/scripts/wolfram-check.sh`** -- Checks both local and cloud mode status. Run when `wolfram-eval.sh` exits with code 1 or produces `NOT_CONFIGURED` output.
