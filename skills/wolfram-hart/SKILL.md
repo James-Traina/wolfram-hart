@@ -1,16 +1,6 @@
 ---
-name: Wolfram Engine
-description: >-
-  This skill should be used when the user asks to "compute", "calculate",
-  "solve", "integrate", "differentiate", "plot", "graph", "factor", "simplify",
-  "find eigenvalues", "find the determinant", "matrix inverse", "do statistics",
-  "run Wolfram code", "use Wolfram", "use Mathematica", "Fourier transform",
-  "Laplace transform", "optimize", "minimize", "maximize", "curve fitting",
-  mentions Wolfram Language, asks for symbolic computation, differential equations,
-  linear algebra, number theory, probability distributions, numerical analysis,
-  data fitting, unit conversions, or any computation requiring a computer algebra
-  system. Also triggers for "export a plot", "graph this function", "LaTeX for
-  this expression", or requests for exact (non-approximate) mathematical answers.
+name: wolfram-hart
+description: 'Wolfram Engine for verified mathematical computation. Use this skill whenever the user asks you to compute, solve, integrate, differentiate, factor, invert a matrix, find eigenvalues, transform (Fourier/Laplace/Z), optimize, fit data, or work with number theory — even if you could answer from memory. Recalled math can silently contain errors; the Wolfram Engine computes and verifies (e.g. a 4×4 matrix where recalled det=6 but true det=12). Make sure to invoke this skill for: matrix operations of any size, exact symbolic integrals, ODE and recurrence solving, polynomial factoring, data regression with exact coefficients, modular arithmetic, constrained optimization, and any mention of Wolfram/Mathematica/Wolfram Language. Also use it when the user asks for an exact or verified result rather than an approximation. The only exception is truly trivial one-step problems (e.g. solve x²=4) where the overhead is not warranted — for anything involving multi-step arithmetic, use this skill.'
 ---
 
 # Wolfram Engine
@@ -36,7 +26,7 @@ a 2-3 second kernel startup cost. Combine related computations into a single
 to "solve this equation and plot the roots," do both in a single script.
 
 **Retry once on failure.** If a computation returns an unevaluated expression or
-an error, consult `references/wolfram-language-guide.md` to verify syntax,
+an error, consult `${CLAUDE_PLUGIN_ROOT}/skills/wolfram-hart/references/wolfram-language-guide.md` to verify syntax,
 adjust the code, and try once more before reporting the problem.
 
 **Skip the pre-flight check unless something fails.** Do not run
@@ -49,7 +39,7 @@ so the user gets actionable setup instructions.
 ### 1. Translate
 
 Convert the user's request to Wolfram Language. Consult
-`references/wolfram-language-guide.md` when unsure about syntax.
+`${CLAUDE_PLUGIN_ROOT}/skills/wolfram-hart/references/wolfram-language-guide.md` when unsure about syntax.
 
 Five rules that prevent the most common mistakes:
 
@@ -82,7 +72,7 @@ Quick-reference mapping from natural language to Wolfram functions:
 | eigenvalues | `Eigenvalues` | `Eigenvalues[{{1,2},{3,4}}]` |
 | ODE / diff eq | `DSolve` | `DSolve[y'[x] == -y[x], y[x], x]` |
 | prime factors | `FactorInteger` | `FactorInteger[360]` |
-| regression / fit | `LinearModelFit` | see `references/common-patterns.md` |
+| regression / fit | `LinearModelFit` | see `${CLAUDE_PLUGIN_ROOT}/skills/wolfram-hart/references/common-patterns.md` |
 | convert units | `UnitConvert` | `UnitConvert[Quantity[100,"Miles"],"Kilometers"]` |
 | Fourier transform | `FourierTransform` | `FourierTransform[Exp[-x^2], x, w]` |
 | optimize / minimize | `NMinimize` / `Minimize` | `NMinimize[x^4 - 3x^2 + x, x]` |
@@ -213,11 +203,11 @@ than local. For repeated work, consider the local Engine option.
 
 Detailed syntax and cookbook patterns, loaded on demand:
 
-- **`references/wolfram-language-guide.md`** -- Complete function reference by domain: algebra, calculus, linear algebra, statistics, plotting, data, strings, and programming constructs.
-- **`references/common-patterns.md`** -- 15 copy-paste-ready patterns with exact bash invocations covering the most frequent computation types.
-- **`references/output-formats.md`** -- How the Wolfram Engine formats different expression types, how to control the format, and how to detect errors in output.
+- **`${CLAUDE_PLUGIN_ROOT}/skills/wolfram-hart/references/wolfram-language-guide.md`** -- Complete function reference by domain: algebra, calculus, linear algebra, statistics, plotting, data, strings, and programming constructs.
+- **`${CLAUDE_PLUGIN_ROOT}/skills/wolfram-hart/references/common-patterns.md`** -- 15 copy-paste-ready patterns with exact bash invocations covering the most frequent computation types.
+- **`${CLAUDE_PLUGIN_ROOT}/skills/wolfram-hart/references/output-formats.md`** -- How the Wolfram Engine formats different expression types, how to control the format, and how to detect errors in output.
 
 ## Scripts
 
-- **`scripts/wolfram-eval.sh`** -- The only interface to the engine. Always use this; never call `wolframscript` directly.
-- **`scripts/wolfram-check.sh`** -- Checks both local and cloud mode status. Run when `wolfram-eval.sh` exits with code 1 or produces `NOT_CONFIGURED` output.
+- **`${CLAUDE_PLUGIN_ROOT}/skills/wolfram-hart/scripts/wolfram-eval.sh`** -- The only interface to the engine. Always use this; never call `wolframscript` directly.
+- **`${CLAUDE_PLUGIN_ROOT}/skills/wolfram-hart/scripts/wolfram-check.sh`** -- Checks both local and cloud mode status. Run when `wolfram-eval.sh` exits with code 1 or produces `NOT_CONFIGURED` output.

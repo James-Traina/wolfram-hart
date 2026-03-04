@@ -3,3 +3,8 @@
 *.swo
 *~
 .serena/
+.claude/
+dist/
+evals/
+wolfram-hart-workspace/
+tests/eval-framework/report.json

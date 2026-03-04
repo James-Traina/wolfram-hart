@@ -225,11 +225,11 @@ reliably without parsing free-text error messages.
 
 ## Testing
 
-The test suite validates 100 behaviors across 10 domain batches. Each test
+The test suite validates 102 behaviors across 10 domain batches. Each test
 calls `wolfram-eval.sh` with real Wolfram code and checks the output.
 
 ```bash
-# Run all 100 tests
+# Run all tests
 bash tests/run-tests.sh tests/batch-*.sh
 
 # Run a single batch
@@ -241,11 +241,13 @@ bash tests/run-tests.sh tests/batch-03.sh tests/batch-05.sh
 
 The batches cover script mechanics, arithmetic, algebra, calculus, linear
 algebra, output formatting, plotting, number theory, statistics, and edge
-cases. Each batch takes 30-90 seconds depending on how many kernel startups
-are involved (plotting batches are slower).
+cases (including exit code 1 and 2 error paths). Each batch takes 30-90
+seconds depending on how many kernel startups are involved (plotting batches
+are slower). The exit code tests in batch-10 use stubs and run without a
+working Wolfram installation.
 
-Tests require a working `wolframscript` installation. There are no other
-dependencies.
+Tests require a working `wolframscript` installation for most batches. There
+are no other dependencies.
 
 ## Development
 
