@@ -10,12 +10,27 @@ much more. If the Wolfram Language can do it, this plugin makes it available.
 
 ## Installing from GitHub
 
+Run these two commands **one at a time** inside Claude Code:
+
+**Step 1** — add this repo as a plugin source:
 ```
 /plugin marketplace add James-Traina/wolfram-hart
+```
+
+**Step 2** — install the plugin:
+```
 /plugin install wolfram-hart@James-Traina-wolfram-hart
 ```
 
 Then restart Claude Code. That's it — the plugin is active.
+
+> **SSH note:** Claude Code clones marketplaces via SSH by default. If you see
+> an SSH authentication error, make sure your GitHub SSH keys are configured
+> (`ssh -T git@github.com` should greet you by name). Alternatively, configure
+> Git to rewrite GitHub SSH URLs to HTTPS:
+> ```bash
+> git config --global url."https://github.com/".insteadOf "git@github.com:"
+> ```
 
 ---
 
