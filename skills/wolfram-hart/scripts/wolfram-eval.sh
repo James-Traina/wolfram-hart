@@ -47,16 +47,16 @@ NOT_INSTALLED: wolframscript is not available on this system.
 
 Choose a setup path:
 
-Option A — Cloud evaluation (fastest setup, no Engine download):
+Option A — Local Engine (offline-capable, ~1 GB download):
+  macOS:  brew install --cask wolfram-engine
+  Linux:  https://www.wolfram.com/engine/ (download .deb / .rpm)
+  Then:   wolframscript   # sign in once to activate the license
+
+Option B — Cloud evaluation (no Engine download, needs internet):
   macOS:  brew install wolframscript
   Linux:  https://www.wolfram.com/wolframscript/ (download binary)
   Then:   wolframscript -authenticate
           export WOLFRAM_MODE=cloud   # add to ~/.zshrc or ~/.bashrc
-
-Option B — Local Engine (offline-capable, ~1 GB download):
-  macOS:  brew install --cask wolfram-engine
-  Linux:  https://www.wolfram.com/engine/ (download .deb / .rpm)
-  Then:   wolframscript   # sign in once to activate the license
 
 Run /wolfram-hart:check after setup to verify either option.
 MISSING
