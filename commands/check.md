@@ -1,4 +1,5 @@
 ---
+name: check
 description: Check Wolfram Engine setup (local and cloud) and show configuration status
 allowed-tools: Bash(bash:*)
 ---
