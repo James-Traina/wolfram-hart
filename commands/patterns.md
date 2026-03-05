@@ -1,4 +1,5 @@
 ---
+name: patterns
 description: Browse common Wolfram computation patterns
 argument-hint: [keyword-or-number]
 allowed-tools: Read
