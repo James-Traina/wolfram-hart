@@ -1,4 +1,5 @@
 ---
+name: eval
 description: Execute Wolfram Language code directly
 argument-hint: <wolfram-code> [timeout]
 allowed-tools: Bash(bash:*), Read
