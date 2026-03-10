@@ -66,8 +66,14 @@ fi
 # ---------------------------------------------------------------------------
 # Prepare a temporary file for the code
 # ---------------------------------------------------------------------------
-TMPFILE=$(mktemp "${TMPDIR:-/tmp}/wolfram_XXXXXX.wl")
-STDERR_FILE=$(mktemp "${TMPDIR:-/tmp}/wolfram_err_XXXXXX.txt")
+# On macOS, BSD mktemp only randomises trailing X's, so a template like
+# "wolfram_XXXXXX.wl" (X's before ".wl") creates a literal file with that
+# exact name every time — no randomisation. Moving X's to the end avoids this.
+# Also strip the trailing "/" from TMPDIR (macOS always includes it) before
+# concatenating so we don't produce a double-slash path.
+_TMPDIR="${TMPDIR%/}"
+TMPFILE=$(mktemp "${_TMPDIR:-/tmp}/wolfram_eval_XXXXXX")
+STDERR_FILE=$(mktemp "${_TMPDIR:-/tmp}/wolfram_err_XXXXXX")
 trap 'rm -f "$TMPFILE" "$STDERR_FILE"' EXIT
 
 printf '%s\n' "$CODE" > "$TMPFILE"
@@ -87,6 +93,15 @@ else
     echo "WARNING: neither 'timeout' nor 'gtimeout' found; computation will run without a time limit." >&2
 fi
 
+run_with_timeout() {
+    local secs="$1"; shift
+    if [[ -n "$TIMEOUT_CMD" ]]; then
+        "$TIMEOUT_CMD" "${secs}s" "$@"
+    else
+        "$@"
+    fi
+}
+
 # ---------------------------------------------------------------------------
 # run_wolframscript <use_cloud>
 #   use_cloud: "yes" to evaluate in the cloud, "no" for local.
@@ -105,13 +120,9 @@ run_wolframscript() {
         ws_args=(-f "$TMPFILE" -print)
     fi
 
-    if [[ -n "$TIMEOUT_CMD" ]]; then
-        RESULT=$("$TIMEOUT_CMD" "${TIMEOUT}s" "$WOLFRAMSCRIPT" "${ws_args[@]}" 2>"$STDERR_FILE") || EXIT_CODE=$?
-    else
-        RESULT=$("$WOLFRAMSCRIPT" "${ws_args[@]}" 2>"$STDERR_FILE") || EXIT_CODE=$?
-    fi
+    RESULT=$(run_with_timeout "$TIMEOUT" "$WOLFRAMSCRIPT" "${ws_args[@]}" 2>"$STDERR_FILE") || EXIT_CODE=$?
 
-    STDERR_CONTENT=$(cat "$STDERR_FILE" 2>/dev/null || true)
+    STDERR_CONTENT=$(<"$STDERR_FILE")
 }
 
 # ---------------------------------------------------------------------------
@@ -122,7 +133,7 @@ run_wolframscript() {
 #          value to stdout (without it, -f produces no final expression value)
 # ---------------------------------------------------------------------------
 RESULT="" EXIT_CODE=0 STDERR_CONTENT=""
-BOTH_FAILED="no"
+BOTH_FAILED=0
 
 case "$WOLFRAM_MODE" in
     cloud)
@@ -140,7 +151,7 @@ case "$WOLFRAM_MODE" in
             LOCAL_STDERR="$STDERR_CONTENT"
             run_wolframscript "yes"
             if [[ $EXIT_CODE -ne 0 && -z "$RESULT" ]]; then
-                BOTH_FAILED="yes"
+                BOTH_FAILED=1
                 # Preserve diagnostics from both attempts for the NOT_CONFIGURED path.
                 STDERR_CONTENT="${LOCAL_STDERR}${STDERR_CONTENT:+; cloud: $STDERR_CONTENT}"
             elif [[ $EXIT_CODE -eq 0 || -n "$RESULT" ]]; then
@@ -160,7 +171,7 @@ esac
 # ---------------------------------------------------------------------------
 # Exit code 124 = GNU timeout sent SIGTERM; 137 = escalated to SIGKILL (128+9)
 if [[ -n "$TIMEOUT_CMD" && ($EXIT_CODE -eq 124 || $EXIT_CODE -eq 137) ]]; then
-    if [[ "$BOTH_FAILED" == "yes" ]]; then
+    if [[ $BOTH_FAILED -eq 1 ]]; then
         printf '%s\n' "TIMEOUT: local evaluation failed, then cloud fallback timed out after ${TIMEOUT}s."
         printf '%s\n' "Run /wolfram-hart:check to diagnose the local setup; increase timeout or check network for cloud."
     else
@@ -171,7 +182,7 @@ if [[ -n "$TIMEOUT_CMD" && ($EXIT_CODE -eq 124 || $EXIT_CODE -eq 137) ]]; then
 fi
 
 if [[ $EXIT_CODE -ne 0 && -z "$RESULT" ]]; then
-    if [[ "$BOTH_FAILED" == "yes" ]]; then
+    if [[ $BOTH_FAILED -eq 1 ]]; then
         cat <<'NOT_CONFIGURED'
 NOT_CONFIGURED: wolframscript was found but neither local nor cloud evaluation worked.
 
