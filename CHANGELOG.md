@@ -4,6 +4,16 @@ All notable changes to wolfram-hart are documented here.
 
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/). Versioning follows [Semantic Versioning](https://semver.org/).
 
+## [1.0.3] - 2026-03-09
+
+### Fixed
+- `wolfram-eval.sh`, `wolfram-check.sh`: BSD `mktemp` (macOS) only randomises trailing X's, so templates like `wolfram_XXXXXX.wl` (X's before `.wl`) produced a literal filename every run, causing "File exists" collisions between consecutive test runs. Fixed by moving X's to the end of all temp file templates (dropping extensions) and stripping the trailing slash from `TMPDIR` before concatenating.
+
+### Changed
+- `wolfram-eval.sh`: unified `run_wolframscript()` to use shared `run_with_timeout()` helper; replaced stringly-typed `BOTH_FAILED="yes"/"no"` with integer `0`/`1`; replaced `$(cat file)` with `$(<file)` to avoid subprocess overhead
+- `wolfram-check.sh`: extracted `trim_first_line()` helper to eliminate two duplicate sed pipelines; removed intermediate `LOCAL_OK`/`CLOUD_OK` string variables; replaced `$(cat)` with `$(<)`
+- `.tests/lib/helpers.sh`: replaced `$(cat)` with `$(<)` in `run_eval`
+
 ## [1.0.2] - 2026-03-09
 
 ### Changed

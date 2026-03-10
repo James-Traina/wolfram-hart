@@ -1,6 +1,6 @@
 {
   "name": "wolfram-hart",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Gives Claude a real math engine. Ask a math or science question and Claude translates it to Wolfram Language, runs it through wolframscript, and hands back the exact answer — symbolic algebra, calculus, plotting, statistics, and more. No special syntax needed.",
   "author": {
     "name": "James Traina"
