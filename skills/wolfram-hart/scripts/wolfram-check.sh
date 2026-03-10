@@ -46,6 +46,10 @@ echo "status: FOUND"
 echo "path: $WOLFRAMSCRIPT"
 echo "mode_set: $WOLFRAM_MODE"
 
+# Strip trailing slash from TMPDIR: on macOS TMPDIR ends with '/', causing
+# double-slash paths that BSD mktemp rejects on some systems.
+_TMPDIR="${TMPDIR%/}"
+
 # Temp files for stderr capture; cleaned up on any exit via trap.
 LOCAL_STDERR_FILE=""
 CLOUD_STDERR_FILE=""
@@ -70,6 +74,10 @@ run_with_timeout() {
     fi
 }
 
+trim_first_line() {
+    printf '%s' "$1" | head -1 | sed 's/^[[:space:]]*//;s/[[:space:]]*$//'
+}
+
 # ---------------------------------------------------------------------------
 # Version
 # ---------------------------------------------------------------------------
@@ -86,17 +94,26 @@ fi
 # ---------------------------------------------------------------------------
 echo ""
 echo "--- local ---"
-LOCAL_STDERR_FILE="$(mktemp "${TMPDIR:-/tmp}/wolfram_chk_local_XXXXXX.txt")"
+LOCAL_STDERR_FILE="$(mktemp "${_TMPDIR:-/tmp}/wolfram_chk_local_XXXXXX")"
 LOCAL_EXIT=0
 LOCAL_RESULT=$(run_with_timeout 15 "$WOLFRAMSCRIPT" -code '2+2' 2>"$LOCAL_STDERR_FILE") || LOCAL_EXIT=$?
-LOCAL_STDERR=$(cat "$LOCAL_STDERR_FILE" 2>/dev/null || true)
+LOCAL_STDERR=$(<"$LOCAL_STDERR_FILE")
 rm -f "$LOCAL_STDERR_FILE"
 # Trim whitespace and check for exact "4" on the first line to avoid false
 # positives from error messages that happen to contain the digit 4.
-LOCAL_FIRST=$(printf '%s' "$LOCAL_RESULT" | head -1 | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+LOCAL_FIRST=$(trim_first_line "$LOCAL_RESULT")
 if [[ "$LOCAL_FIRST" == "4" ]]; then
     echo "local_licensed: YES"
     echo "local_test: 2+2 = 4"
+    DETAILS_EXIT=0
+    DETAILS=$(run_with_timeout 15 "$WOLFRAMSCRIPT" -code \
+        'StringJoin[ToString[$VersionNumber], " | ", $SystemID, " | ", ToString[$ProcessorCount], " cores"]' \
+        2>&1) || DETAILS_EXIT=$?
+    if [[ $DETAILS_EXIT -ne 0 ]]; then
+        echo "engine: UNKNOWN (exited with code $DETAILS_EXIT)"
+    else
+        echo "engine: $DETAILS"
+    fi
 elif [[ $LOCAL_EXIT -eq 124 || $LOCAL_EXIT -eq 137 ]]; then
     echo "local_licensed: TIMEOUT"
     echo "local_hint: local check timed out after 15s; the kernel may be slow to start — retry or increase timeout"
@@ -109,30 +126,17 @@ else
     echo "local_hint: run 'wolframscript' interactively to complete activation"
 fi
 
-# Engine details (local only, skipped if not licensed)
-if [[ "$LOCAL_FIRST" == "4" ]]; then
-    DETAILS_EXIT=0
-    DETAILS=$(run_with_timeout 15 "$WOLFRAMSCRIPT" -code \
-        'StringJoin[ToString[$VersionNumber], " | ", $SystemID, " | ", ToString[$ProcessorCount], " cores"]' \
-        2>&1) || DETAILS_EXIT=$?
-    if [[ $DETAILS_EXIT -ne 0 ]]; then
-        echo "engine: UNKNOWN (exited with code $DETAILS_EXIT)"
-    else
-        echo "engine: $DETAILS"
-    fi
-fi
-
 # ---------------------------------------------------------------------------
 # Cloud check
 # ---------------------------------------------------------------------------
 echo ""
 echo "--- cloud ---"
-CLOUD_STDERR_FILE="$(mktemp "${TMPDIR:-/tmp}/wolfram_chk_cloud_XXXXXX.txt")"
+CLOUD_STDERR_FILE="$(mktemp "${_TMPDIR:-/tmp}/wolfram_chk_cloud_XXXXXX")"
 CLOUD_EXIT=0
 CLOUD_RESULT=$(run_with_timeout 30 "$WOLFRAMSCRIPT" -cloud -code '2+2' 2>"$CLOUD_STDERR_FILE") || CLOUD_EXIT=$?
-CLOUD_STDERR=$(cat "$CLOUD_STDERR_FILE" 2>/dev/null || true)
+CLOUD_STDERR=$(<"$CLOUD_STDERR_FILE")
 rm -f "$CLOUD_STDERR_FILE"
-CLOUD_FIRST=$(printf '%s' "$CLOUD_RESULT" | head -1 | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+CLOUD_FIRST=$(trim_first_line "$CLOUD_RESULT")
 if [[ "$CLOUD_FIRST" == "4" ]]; then
     echo "cloud_available: YES"
     echo "cloud_test: 2+2 = 4"
@@ -153,14 +157,11 @@ fi
 # ---------------------------------------------------------------------------
 echo ""
 echo "--- setup ---"
-if [[ "$LOCAL_FIRST" == "4" ]]; then LOCAL_OK="yes"; else LOCAL_OK="no"; fi
-if [[ "$CLOUD_FIRST" == "4" ]]; then CLOUD_OK="yes"; else CLOUD_OK="no"; fi
-
-if [[ "$LOCAL_OK" == "yes" && "$CLOUD_OK" == "yes" ]]; then
+if [[ "$LOCAL_FIRST" == "4" && "$CLOUD_FIRST" == "4" ]]; then
     echo "recommended_mode: auto (both local and cloud are available)"
-elif [[ "$LOCAL_OK" == "yes" ]]; then
+elif [[ "$LOCAL_FIRST" == "4" ]]; then
     echo "recommended_mode: local (Engine licensed; cloud not configured)"
-elif [[ "$CLOUD_OK" == "yes" ]]; then
+elif [[ "$CLOUD_FIRST" == "4" ]]; then
     echo "recommended_mode: cloud"
     echo "recommended_action: add 'export WOLFRAM_MODE=cloud' to ~/.zshrc or ~/.bashrc"
 else

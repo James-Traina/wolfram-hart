@@ -59,11 +59,9 @@ run_eval() {
     tmp_err=$(mktemp "${TMPDIR:-/tmp}/test_err_XXXXXX")
 
     LAST_EXIT=0
-    bash "$EVAL_SCRIPT" "$code" "$timeout" >"$tmp_out" 2>"$tmp_err" || LAST_EXIT=$?
-
-    LAST_STDOUT=$(cat "$tmp_out")
-    LAST_STDERR=$(cat "$tmp_err")
-    rm -f "$tmp_out" "$tmp_err"
+    LAST_STDOUT=$(bash "$EVAL_SCRIPT" "$code" "$timeout" 2>"$tmp_err") || LAST_EXIT=$?
+    LAST_STDERR=$(<"$tmp_err")
+    rm -f "$tmp_err"
 }
 
 # ---------------------------------------------------------------------------
