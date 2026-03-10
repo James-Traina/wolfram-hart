@@ -1,6 +1,17 @@
 ---
 name: wolfram-hart
-description: 'Wolfram Engine for verified mathematical computation. Use this skill whenever the user asks you to compute, solve, integrate, differentiate, factor, invert a matrix, find eigenvalues, transform (Fourier/Laplace/Z), optimize, fit data, or work with number theory — even if you could answer from memory. Recalled math can silently contain errors; the Wolfram Engine computes and verifies (e.g. a 4×4 matrix where recalled det=6 but true det=12). Make sure to invoke this skill for: matrix operations of any size, exact symbolic integrals, ODE and recurrence solving, polynomial factoring, data regression with exact coefficients, modular arithmetic, constrained optimization, and any mention of Wolfram/Mathematica/Wolfram Language. Also use it when the user asks for an exact or verified result rather than an approximation. The only exception is truly trivial one-step problems (e.g. solve x²=4) where the overhead is not warranted — for anything involving multi-step arithmetic, use this skill.'
+description: >-
+  This skill should be invoked when the user makes a math or science computation
+  request — even when the answer seems easy to recall. Trigger phrases include:
+  "what is the integral of x²", "solve x³ - 6x² + 11x = 6", "factor this
+  polynomial", "find the eigenvalues of this matrix", "plot sin(x) from 0 to
+  2π", "convert 60 mph to km/h", "what's the Fourier transform of e^(-x²)",
+  "minimize f(x,y) subject to a constraint". Also invoke for matrix operations
+  of any size, exact symbolic integrals, ODE solving, data regression, modular
+  arithmetic, and any mention of Wolfram, Mathematica, or Wolfram Language.
+  Recalled math can silently contain errors; the Wolfram Engine verifies (e.g.,
+  a 4×4 matrix where recalled det=6 but the true det=12). Exception: truly
+  trivial one-step problems (e.g., "what is 2+2") do not warrant the overhead.
 ---
 
 # Wolfram Engine
@@ -18,7 +29,7 @@ for confirmation. Do not ask "would you like me to use Wolfram?" or "shall I
 compute this?" Just run the code and present the result.
 
 **Compute, don't guess.** Do not answer mathematical questions from memory.
-The Wolfram Engine produces verified results; your training data does not.
+The Wolfram Engine produces verified results; training data does not.
 
 **Batch related work into one call.** Each invocation of `wolframscript` carries
 a 2-3 second kernel startup cost. Combine related computations into a single
@@ -36,6 +47,15 @@ so the user gets actionable setup instructions.
 
 ## Workflow
 
+### 0. Signal routing
+
+Before anything else, output exactly this line so the user knows the request
+was routed to the Wolfram Engine:
+
+```
+_ᴡ wolfram_
+```
+
 ### 1. Translate
 
 Convert the user's request to Wolfram Language. Consult
@@ -50,7 +70,7 @@ Five rules that prevent the most common mistakes:
 5. Constants are capitalized: `Pi`, `E`, `I`, `Infinity`
 
 When a request is mathematically ambiguous (e.g., real vs. complex solutions,
-degrees vs. radians), choose a reasonable interpretation and state your
+degrees vs. radians), choose a reasonable interpretation and state the
 assumption briefly when presenting the result.
 
 Quick-reference mapping from natural language to Wolfram functions:
@@ -125,7 +145,7 @@ bash ${CLAUDE_PLUGIN_ROOT}/skills/wolfram-hart/scripts/wolfram-eval.sh '<code>' 
 
 **Evaluation mode.** The script respects the `WOLFRAM_MODE` environment
 variable: `auto` (default, tries local then cloud), `local`, or `cloud`.
-You do not need to set it — auto mode works transparently. When the user has
+No manual setup needed — auto mode works transparently. When the user has
 set `WOLFRAM_MODE=cloud`, the `-cloud` flag is added to the wolframscript
 invocation and no local Engine is required. If the local kernel is present
 but unlicensed, auto mode incurs the full local timeout before falling back;
